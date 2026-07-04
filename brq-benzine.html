@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title>برق بنزين | 3D Automotive Art</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: '#e2b04a',
+            dark: '#0a0a0a',
+            card: '#111111',
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', system-ui, sans-serif; background: #0a0a0a; color: #fff; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    html { scroll-behavior: smooth; }
+
+    ::selection { background: rgba(226, 176, 74, 0.3); color: #fff; }
+
+    .gold-text {
+      background: linear-gradient(135deg, #e2b04a 0%, #f5d89a 50%, #e2b04a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @keyframes shine {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .card-glow:hover {
+      box-shadow: 0 0 30px rgba(226, 176, 74, 0.15);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scroll-hide::-webkit-scrollbar { display: none; }
+    .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes bounce-scroll {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    .animate-bounce-scroll {
+      animation: bounce-scroll 2s ease-in-out infinite;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .animate-marquee {
+      animation: marquee 25s linear infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .line-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .product-card:hover .product-overlay {
+      opacity: 1;
+    }
+
+    .product-card:hover .product-img {
+      transform: scale(1.1);
+    }
+
+    .category-card:hover .category-overlay {
+      opacity: 1;
+    }
+
+    .category-card:hover img {
+      transform: scale(1.05);
+    }
+
+    .nav-scrolled {
+      background: rgba(10, 10, 10, 0.85) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-dark">
+  <div id="app" class="flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background: transparent;">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 sm:h-20">
+          <!-- Logo -->
+          <div class="flex items-center gap-2 sm:gap-3">
+            <img src="logo.png" alt="برق بنزين" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain">
+            <span class="gold-text font-bold text-lg sm:text-xl">برق بنزين</span>
+          </div>
+
+          <!-- Desktop Nav -->
+          <div class="hidden md:flex items-center gap-6 lg:gap-8">
+            <a href="#hero" class="text-sm text-white/70 hover:text-gold transition-colors">الرئيسية</a>
+            <a href="#categories" class="text-sm text-white/70 hover:text-gold transition-colors">المجموعات</a>
+            <a href="#products" class="text-sm text-white/70 hover:text-gold transition-colors">المنتجات</a>
+            <a href="#contact" class="text-sm text-white/70 hover:text-gold transition-colors">تواصل معنا</a>
+          </div>
+
+          <!-- Desktop WhatsApp + Mobile Menu -->
+          <div class="flex items-center gap-3">
+            <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+               class="hidden sm:flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              واتساب
+            </a>
+            <!-- Hamburger -->
+            <button id="menuBtn" class="md:hidden p-2 text-white/80 hover:text-white" onclick="toggleMenu()">
+              <svg id="hamburgerIcon" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              <svg id="closeIcon" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="hidden md:hidden bg-card/95 backdrop-blur-lg border-t border-white/10">
+        <div class="px-4 py-4 space-y-3">
+          <a href="#hero" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">الرئيسية</a>
+          <a href="#categories" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">المجموعات</a>
+          <a href="#products" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">المنتجات</a>
+          <a href="#contact" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">تواصل معنا</a>
+          <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+             class="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-medium mt-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            تواصل عبر واتساب
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- PROMO BANNER -->
+    <div class="bg-gold overflow-hidden h-8 sm:h-10 flex items-center mt-16 sm:mt-20 relative z-40">
+      <div class="animate-marquee whitespace-nowrap flex items-center gap-8 text-dark font-bold text-xs sm:text-sm">
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+        <span>اشتري 3 واحصل على خصم 10% + شحن مجاني ★</span>
+      </div>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex items-center justify-center overflow-hidden"
+      style="background: radial-gradient(ellipse at center, rgba(226,176,74,0.08) 0%, #0a0a0a 60%, #111 100%);">
+
+      <!-- Animated horizontal lines -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-12 sm:gap-20 opacity-20 pointer-events-none">
+        <div class="w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent line-glow"></div>
+        <div class="w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent line-glow" style="animation-delay: 1s;"></div>
+        <div class="w-full max-w-5xl h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent line-glow" style="animation-delay: 2s;"></div>
+      </div>
+
+      <div class="relative z-10 text-center px-4 flex flex-col items-center">
+        <img src="logo.png" alt="برق بنزين" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-contain mb-6 sm:mb-8">
+        <h1 class="gold-text text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-3 sm:mb-4">برق بنزين</h1>
+        <p class="text-white/50 text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase mb-4 sm:mb-6">3D Automotive Art</p>
+        <p class="text-white/60 text-sm sm:text-base md:text-lg max-w-xl mb-8 sm:mb-10 leading-relaxed">
+          قطع فنية ثلاثية الأبعاد لسياراتك المفضلة — إطارات، حاملات مفاتيح، وإكسسوارات مميزة
+        </p>
+        <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-12 sm:mb-16">
+          <a href="#products" class="bg-gold hover:bg-gold/90 text-dark font-bold px-8 py-3 rounded-lg text-sm sm:text-base transition-all hover:scale-105 w-full sm:w-auto text-center">
+            تسوق الآن
+          </a>
+          <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+             class="border border-gold/50 text-gold hover:bg-gold/10 font-medium px-8 py-3 rounded-lg text-sm sm:text-base transition-all w-full sm:w-auto text-center">
+            تواصل معنا
+          </a>
+        </div>
+
+        <!-- Brand Logos -->
+        <div class="flex items-center gap-6 sm:gap-10 text-white/20 text-xs sm:text-sm font-medium tracking-wider">
+          <span>BMW</span>
+          <span>•</span>
+          <span>Mercedes</span>
+          <span>•</span>
+          <span>Porsche</span>
+          <span>•</span>
+          <span>Alfa Romeo</span>
+        </div>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div class="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce-scroll">
+        <div class="w-5 h-8 border-2 border-white/30 rounded-full flex justify-center pt-1.5">
+          <div class="w-1 h-2 bg-gold rounded-full"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES SECTION -->
+    <section id="categories" class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">تسوق بالمجموعة</h2>
+
+        <div class="relative">
+          <!-- Scroll Arrows -->
+          <button onclick="scrollCategories(-1)" class="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-card border border-white/10 rounded-full items-center justify-center hover:bg-white/10 transition-colors -mr-5">
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button onclick="scrollCategories(1)" class="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-card border border-white/10 rounded-full items-center justify-center hover:bg-white/10 transition-colors -ml-5">
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+
+          <div id="categoryCarousel" class="flex gap-4 sm:gap-6 overflow-x-auto scroll-hide pb-4">
+            <!-- Categories will be injected here by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOM SECTION -->
+    <section class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <!-- Custom Frame -->
+          <a href="https://api.whatsapp.com/send/?phone=201055190003&text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A5%D8%B7%D8%A7%D8%B1%20%D9%85%D8%AE%D8%B5%D8%B5%20-%20Custom%20Frame%20-%20LE%203%2C500.00" target="_blank"
+             class="relative group rounded-2xl overflow-hidden aspect-[4/3] card-glow cursor-pointer">
+            <img src="https://velocity-eg.net/cdn/shop/files/082FF395-E1CA-4B55-8092-B5352130107E.png" alt="Custom Frame"
+                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+              <p class="text-gold font-bold text-xl sm:text-2xl mb-1">Custom Frame</p>
+              <p class="text-white/60 text-sm mb-3">إطار مخصص حسب رغبتك</p>
+              <p class="text-white font-bold text-lg mb-3">LE 3,500.00</p>
+              <span class="inline-flex items-center gap-2 bg-gold text-dark font-bold px-5 py-2.5 rounded-lg text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                اطلب الآن
+              </span>
+            </div>
+          </a>
+
+          <!-- Custom Key Holder -->
+          <a href="https://api.whatsapp.com/send/?phone=201055190003&text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%AD%D8%A7%D9%85%D9%84%20%D9%85%D9%81%D8%A7%D8%AA%D9%8A%D8%AD%20%D9%85%D8%AE%D8%B5%D8%B5%20-%20Custom%20Key%20Holder%20-%20LE%202%2C000.00" target="_blank"
+             class="relative group rounded-2xl overflow-hidden aspect-[4/3] card-glow cursor-pointer">
+            <img src="https://velocity-eg.net/cdn/shop/files/C4B26CF7-F565-46BE-B1AA-E2218A8FFD1B_1.png" alt="Custom Key Holder"
+                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+              <p class="text-gold font-bold text-xl sm:text-2xl mb-1">Custom Key Holder</p>
+              <p class="text-white/60 text-sm mb-3">حامل مفاتيح مخصص حسب رغبتك</p>
+              <p class="text-white font-bold text-lg mb-3">LE 2,000.00</p>
+              <span class="inline-flex items-center gap-2 bg-gold text-dark font-bold px-5 py-2.5 rounded-lg text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                اطلب الآن
+              </span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOM ORDER SECTION -->
+    <section class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-card border border-white/10 rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+          <!-- Gold accent lines -->
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+
+          <div class="text-center mb-6">
+            <div class="flex justify-center mb-3">
+              <svg class="w-8 h-8 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold mb-2">اطلب موديل خاص</h3>
+            <p class="text-white/50 text-sm">اكتب تفاصيل الموديل اللي عايزه وهنوصل لك</p>
+          </div>
+
+          <div class="mb-4">
+            <textarea id="customOrderText" maxlength="500" rows="4"
+              class="w-full bg-dark border border-white/10 rounded-xl p-4 text-white text-sm placeholder-white/30 resize-none focus:outline-none focus:border-gold/50 transition-colors"
+              placeholder="مثال: عايز إطار BMW M3 بلون أزرق بحجم كبير..."
+              oninput="updateCharCount()"></textarea>
+            <div class="text-left mt-1">
+              <span id="charCount" class="text-white/30 text-xs">0 / 500</span>
+            </div>
+          </div>
+
+          <button id="sendCustomOrder" onclick="sendCustomOrder()" disabled
+            class="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/30 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            ابعت طلبك
+          </button>
+
+          <p class="text-center text-white/30 text-xs mt-3">بنفس سعر النموذج الجاهز</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCT SECTIONS -->
+    <section id="products" class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div id="productSections">
+          <!-- Product sections will be injected here by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION -->
+    <section class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">ماذا يقولون عن منتجاتنا</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
+          <!-- Review 1 -->
+          <div class="bg-card border border-white/10 rounded-2xl p-5 sm:p-6 card-glow transition-all">
+            <div class="flex gap-1 mb-3">
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed mb-4">"جودة الطباعة ثلاثية الأبعاد ممتازة والتفاصيل دقيقة جداً. الإطار طلع أحلى مما توقعت. شكراً ليكم على الشغل الرائع!"</p>
+            <p class="text-gold font-semibold text-sm">أحمد محمود</p>
+          </div>
+
+          <!-- Review 2 -->
+          <div class="bg-card border border-white/10 rounded-2xl p-5 sm:p-6 card-glow transition-all">
+            <div class="flex gap-1 mb-3">
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed mb-4">"اشتريت حامل مفاتيح البورش وكمان إطار لل G-Class. التغليف كان ممتاز والتوصيل سريع. هشتري تاني بالتأكيد!"</p>
+            <p class="text-gold font-semibold text-sm">محمد حسن</p>
+          </div>
+
+          <!-- Review 3 -->
+          <div class="bg-card border border-white/10 rounded-2xl p-5 sm:p-6 card-glow transition-all">
+            <div class="flex gap-1 mb-3">
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed mb-4">"هديت حامل المفاتيح سبويلر لصاحبي وكان هيفرح بيه أوي. التصميم واقعي والجودة عالية. أنصح بيها بقوة!"</p>
+            <p class="text-gold font-semibold text-sm">كريم عبدالله</p>
+          </div>
+
+          <!-- Review 4 -->
+          <div class="bg-card border border-white/10 rounded-2xl p-5 sm:p-6 card-glow transition-all">
+            <div class="flex gap-1 mb-3">
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg class="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed mb-4">"أعمل مكتب وأخيراً لقيت حامل أقلام يمثل شغفي بالعربيات. التصميم ثري دي فعلاً مبسط ومميز. كل اللي شافه سألني منين جيته!"</p>
+            <p class="text-gold font-semibold text-sm">ياسر علي</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="py-12 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">تواصل معنا</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto mb-8">
+          <!-- WhatsApp -->
+          <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+             class="bg-card border border-white/10 rounded-2xl p-6 text-center card-glow transition-all hover:border-green-500/30 group">
+            <div class="w-12 h-12 mx-auto mb-3 bg-green-600/10 rounded-full flex items-center justify-center group-hover:bg-green-600/20 transition-colors">
+              <svg class="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <p class="font-bold text-sm mb-1">واتساب</p>
+            <p class="text-white/50 text-xs">01055190003</p>
+          </a>
+
+          <!-- Instagram -->
+          <a href="https://www.instagram.com/3d.vision.printerest?igsh=ZmlncHEyY2wyenNl" target="_blank"
+             class="bg-card border border-white/10 rounded-2xl p-6 text-center card-glow transition-all hover:border-pink-500/30 group">
+            <div class="w-12 h-12 mx-auto mb-3 bg-pink-600/10 rounded-full flex items-center justify-center group-hover:bg-pink-600/20 transition-colors">
+              <svg class="w-6 h-6 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </div>
+            <p class="font-bold text-sm mb-1">انستجرام</p>
+            <p class="text-white/50 text-xs">@3d.vision.printerest</p>
+          </a>
+
+          <!-- TikTok -->
+          <a href="https://www.tiktok.com/@3d_vision1?_r=1&_t=ZS-97ewic5tnMa" target="_blank"
+             class="bg-card border border-white/10 rounded-2xl p-6 text-center card-glow transition-all hover:border-white/30 group">
+            <div class="w-12 h-12 mx-auto mb-3 bg-white/5 rounded-full flex items-center justify-center group-hover:bg-white/10 transition-colors">
+              <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.87a8.28 8.28 0 0 0 4.84 1.56V6.97a4.84 4.84 0 0 1-1.08-.28z"/></svg>
+            </div>
+            <p class="font-bold text-sm mb-1">تيك توك</p>
+            <p class="text-white/50 text-xs">@3d_vision1</p>
+          </a>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="text-center">
+          <div class="inline-flex items-center gap-2 text-white/50 text-sm">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span dir="ltr">01055190003</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto border-t border-white/10" style="background: #060606;">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <!-- Brand Info -->
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <img src="logo.png" alt="برق بنزين" class="w-8 h-8 rounded-full object-contain">
+              <span class="gold-text font-bold text-lg">برق بنزين</span>
+            </div>
+            <p class="text-white/40 text-sm leading-relaxed">قطع فنية ثلاثية الأبعاد لسياراتك المفضلة. إطارات، حاملات مفاتيح، وإكسسوارات مميزة بجودة عالية.</p>
+          </div>
+
+          <!-- Quick Links -->
+          <div>
+            <h4 class="font-bold text-sm mb-4 text-gold">روابط سريعة</h4>
+            <ul class="space-y-2 text-sm text-white/40" id="footerCategoryLinks">
+              <!-- Generated by JS -->
+            </ul>
+          </div>
+
+          <!-- Info -->
+          <div>
+            <h4 class="font-bold text-sm mb-4 text-gold">معلومات</h4>
+            <ul class="space-y-2 text-sm text-white/40">
+              <li><a href="https://api.whatsapp.com/send/?phone=201055190003&text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%B9%D9%86%20%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9%20%D8%A7%D9%84%D8%B4%D8%AD%D9%86" target="_blank" class="hover:text-white transition-colors">سياسة الشحن</a></li>
+              <li><a href="https://api.whatsapp.com/send/?phone=201055190003&text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%B9%D9%86%20%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9" target="_blank" class="hover:text-white transition-colors">الاسترجاع</a></li>
+              <li><a href="https://api.whatsapp.com/send/?phone=201055190003&text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%AA%D8%A8%D8%B9%20%D8%B7%D9%84%D8%A8%D9%8A" target="_blank" class="hover:text-white transition-colors">تتبع طلبك</a></li>
+            </ul>
+          </div>
+
+          <!-- Follow Us -->
+          <div>
+            <h4 class="font-bold text-sm mb-4 text-gold">تابعنا</h4>
+            <div class="flex gap-3">
+              <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+                 class="w-10 h-10 bg-white/5 hover:bg-green-600/20 rounded-full flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </a>
+              <a href="https://www.instagram.com/3d.vision.printerest?igsh=ZmlncHEyY2wyenNl" target="_blank"
+                 class="w-10 h-10 bg-white/5 hover:bg-pink-600/20 rounded-full flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+              <a href="https://www.tiktok.com/@3d_vision1?_r=1&_t=ZS-97ewic5tnMa" target="_blank"
+                 class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.87a8.28 8.28 0 0 0 4.84 1.56V6.97a4.84 4.84 0 0 1-1.08-.28z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-white/10 mt-8 pt-6 text-center">
+          <p class="text-white/30 text-xs sm:text-sm">© 2025 برق بنزين. جميع الحقوق محفوظة.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div id="productModal" class="fixed inset-0 z-[100] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div class="bg-card border border-white/10 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div class="relative">
+          <img id="modalImage" src="" alt="" class="w-full aspect-square object-cover rounded-t-2xl">
+          <span id="modalBadge" class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full hidden">خصم</span>
+          <button onclick="closeModal()" class="absolute top-3 left-3 w-8 h-8 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="p-5 sm:p-6">
+          <h3 id="modalName" class="font-bold text-lg mb-3 leading-relaxed"></h3>
+          <div class="flex items-center gap-3 mb-5">
+            <span id="modalPrice" class="gold-text font-bold text-xl"></span>
+            <span id="modalOriginalPrice" class="text-white/40 line-through text-sm hidden"></span>
+          </div>
+          <a id="modalWhatsApp" href="#" target="_blank"
+             class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm transition-all w-full">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            اطلب عبر واتساب
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING WHATSAPP BUTTON -->
+  <a href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
+     class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-green-600 hover:bg-green-700 hover:scale-110 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 transition-all">
+    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </a>
+
+  <script>
+    // ============ DATA ============
+    const CATEGORIES = [
+      { id: "frames", titleAr: "إطارات السيارات", titleEn: "FRAMES", descriptionAr: "إطارات فنية ثلاثية الأبعاد لسياراتك المفضلة", image: "https://velocity-eg.net/cdn/shop/files/082FF395-E1CA-4B55-8092-B5352130107E.png" },
+      { id: "back-keyholders", titleAr: "حاملات المفاتيح الخلفية", titleEn: "BACK KEY HOLDERS", descriptionAr: "بيت فاخر لمفاتيحك مستوحى من السيارات الأيقونية", image: "https://velocity-eg.net/cdn/shop/files/C4B26CF7-F565-46BE-B1AA-E2218A8FFD1B_1.png" },
+      { id: "front-keyholders", titleAr: "حاملات المفاتيح الأمامية", titleEn: "FRONT KEYHOLDERS", descriptionAr: "حاملات مفاتيح بتصميم الواجهة الأمامية للسيارات", image: "https://velocity-eg.net/cdn/shop/files/CE8BD07B-2C82-4361-949E-33763CC99CA7.webp" },
+      { id: "spoiler-keyholders", titleAr: "حاملات المفاتيح سبويلر", titleEn: "SPOILER KEYHOLDERS", descriptionAr: "حوّل الجناح الخلفي الأيقوني إلى مكان مثالي لمفاتيحك", image: "https://velocity-eg.net/cdn/shop/files/6ADC2109-9E9F-4C93-A5AD-0DAD07DCC06A_1.png" },
+    ];
+    const EXTRA_CATEGORIES = [
+      { id: "office-accessories", titleAr: "إكسسوارات مكتبية", titleEn: "OFFICE ACCESSORIES", descriptionAr: "قطع مميزة لتنظيم مكتبك بأسلوب فريد", image: "https://wanddo.shop/cdn/shop/files/BLCK_FRIDAY_POSTS_2_4ad15c16-841f-4a08-b214-bab3aca4d365.png" },
+      { id: "home-decor", titleAr: "ديكور المنزل", titleEn: "HOME DECOR", descriptionAr: "ديكورات وإضاءة لإضفاء لمسة فنية على مساحتك", image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_41.png" },
+      { id: "special-gifts", titleAr: "هدايا مميزة", titleEn: "SPECIAL GIFTS", descriptionAr: "هدايا فريدة وقطع مميزة لكل مناسبة", image: "https://wanddo.shop/cdn/shop/files/Gemini_Generated_Image.png" },
+    ];
+
+    const PRODUCTS = [
+      { name: "BMW M4 Competition – Twilight Purple Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/082FF395-E1CA-4B55-8092-B5352130107E.png", category: "frames" },
+      { name: "BMW M4 Competition – Toronto Red Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/DF4B9E86-BD08-4099-8261-BDF0B3F04CCD.png", category: "frames" },
+      { name: "BMW M4 Competition – Lime Yellow", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/2D841503-B7BF-43ED-9097-E5CE4D3513D5.png", category: "frames" },
+      { name: "BMW M4 Competition – Grey", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/35F1628B-C3C3-45DB-8638-C228436A2596.png", category: "frames" },
+      { name: "BMW M4 Competition – Green Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/F9D3E7BC-55A0-449C-9055-D641248357F2.png", category: "frames" },
+      { name: "BMW M4 Competition – Frozen Black Matte", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/D8C40946-C131-44F6-985F-11CDCCD2757F.png", category: "frames" },
+      { name: "BMW M4 Competition – Black Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/451296C3-1D4E-4202-9109-45864FD9EE1C.png", category: "frames" },
+      { name: "BMW 340i M white", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/0991306F-C1CC-4C53-A234-8BD03ADE741C_2.png", category: "frames" },
+      { name: "BMW 340i M nardo Gray", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/686245BE-5E96-46E4-9BAD-ADCFBEF873B1_1.png", category: "frames" },
+      { name: "BMW 340i M black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/0C103B50-81E9-4EEF-B4EC-6644F0316C88.webp", category: "frames" },
+      { name: "BMW 340i M Portimao blue", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/CAC2DAC2-716D-4055-AB35-EE66833301FF_1.png", category: "frames" },
+      { name: "G-CLASS Super Black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/BCFE9067-0D1B-4E5C-B0B4-B5554EB43043.webp", category: "frames" },
+      { name: "G-CLASS Black Matte", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/AB64B5C2-0621-42FF-9342-272FAABD064D_1.png", category: "frames" },
+      { name: "G-CLASS Silver", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/55D79EA0-CE71-4522-B6B6-313FF75ED94A_1.png", category: "frames" },
+      { name: "G-CLASS Moonlight White", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/DB0454C9-ACD7-4B5A-8E4E-C7C2E39668A7_1.png", category: "frames" },
+      { name: "G-CLASS Gold", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/8ACA9955-4602-498E-8FAF-C3926312AB35_1.png", category: "frames" },
+      { name: "Porsche 911 GT3 RS Nardo Gray", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/624981A1-0505-4FAF-984E-96FB58A67A36_1.png", category: "frames" },
+      { name: "Porsche 911 GT3 RS Red", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/6FD5A096-AE56-4643-9C6B-5413EEF1EC77_1.png", category: "frames" },
+      { name: "Porsche 911 GT3 RS Black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/63ADBAD7-A33F-45C6-88B6-07D8AB3C1D10_1_1.png", category: "frames" },
+      { name: "Porsche 911 GT3 RS Pink", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/9348D5F1-151F-4BB8-84F9-CAD4666CAF9F_1.png", category: "frames" },
+      { name: "Porsche 911 GT3 RS Blue", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/94A6D108-58C7-44FD-AB06-F21C6355A508.webp", category: "frames" },
+      { name: "Alfa Romeo Giulia Quadrifoglio - Black", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/88C17702-DF16-4F7A-91AF-461040A46168.png", category: "frames" },
+      { name: "Alfa Romeo Giulia Quadrifoglio – Competizione Red", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/CF114E02-1B86-4C6D-85EB-81684A778802.png", category: "frames" },
+      { name: "Alfa Romeo Giulia Quadrifoglio – Montreal Green Metallic", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/3ED12691-8C20-4856-9827-F7F4E7DF5798.png", category: "frames" },
+      { name: "White Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/C4B26CF7-F565-46BE-B1AA-E2218A8FFD1B_1.png", category: "back-keyholders" },
+      { name: "Gray Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/79C41D83-4E26-4569-9261-C21B8A219041_1.png", category: "back-keyholders" },
+      { name: "Black Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/2155F75F-5F0F-4365-9703-93EF455AB64F.jpg", category: "back-keyholders" },
+      { name: "Red Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/7DB7ADD0-0C37-4D41-B0A9-04BA4176E505.jpg", category: "back-keyholders" },
+      { name: "Blue Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/BF5F8925-D191-4A66-8B9A-E933CF74C6DF.jpg", category: "back-keyholders" },
+      { name: "Matte Gray – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/CE8BD07B-2C82-4361-949E-33763CC99CA7.webp", category: "front-keyholders" },
+      { name: "Silver – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/0912A7EF-A5ED-4A3E-AE67-0142E3E95F94_1.png", category: "front-keyholders" },
+      { name: "Black – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/7BAF4C2B-E260-4F00-9A9D-2617BFBAD876.webp", category: "front-keyholders" },
+      { name: "White – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/4E62FBC3-826E-48AA-B9D0-6EBA155E6BF7_1_1.png", category: "front-keyholders" },
+      { name: "Matte Red – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/2C9555A6-713C-4D3F-92DD-FC61275017F4_1.png", category: "front-keyholders" },
+      { name: "Gray – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/6ADC2109-9E9F-4C93-A5AD-0DAD07DCC06A_1.png", category: "spoiler-keyholders" },
+      { name: "Red – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/27D9CB4E-7686-475E-9CE4-4415CA91A246_1.png", category: "spoiler-keyholders" },
+      { name: "Gold – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/5233A979-900A-4C73-A101-F46703572887_1_1.png", category: "spoiler-keyholders" },
+      { name: "White – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/AA649905-EFE0-4C16-A8CC-4AA3EFD4E85B_1.webp", category: "spoiler-keyholders" },
+      { name: "Blue – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/B3EA3A6B-B8E7-445A-B5A0-DBD3B52EE1DD.webp", category: "spoiler-keyholders" },
+    ];
+
+    const EXTRA_PRODUCTS = [
+      { name: "حامل أقلام ولوحة اسم مكتبي ثلاثي الأبعاد", price: 345, image: "https://wanddo.shop/cdn/shop/files/BLCK_FRIDAY_POSTS_2_4ad15c16-841f-4a08-b214-bab3aca4d365.png", category: "office-accessories" },
+      { name: "حامل أقلام ثلاثي الأبعاد لافتة مكتبية بلون إصدار محدود", price: 400, image: "https://wanddo.shop/cdn/shop/files/13.png", category: "office-accessories" },
+      { name: "حامل أقلام توك توك", price: 350, image: "https://wanddo.shop/cdn/shop/files/Front.jpg", category: "office-accessories" },
+      { name: "حامل أقلام على شكل خلية نحل", price: 350, image: "https://wanddo.shop/cdn/shop/files/3893000.png", category: "office-accessories" },
+      { name: "مقلمة الأقلام", price: 395, image: "https://wanddo.shop/cdn/shop/files/Pencil_Case.jpg", category: "office-accessories" },
+      { name: "حافظة أقلام وحامل أقلام 2 في 1 بتصميم الآيس كريم", price: 435, image: "https://wanddo.shop/cdn/shop/files/20250821_1209_IceCreamPencilCase_remix_01k35y522wftq8p1gydyxa9244_1.png", category: "office-accessories" },
+      { name: "حامل أوراق الملاحظات اللاصقة", price: 419, originalPrice: 455, image: "https://wanddo.shop/cdn/shop/files/Flamingo_Pink.jpg", category: "office-accessories" },
+      { name: "حامل أوراق الملاحظات اللاصقة ثنائي الأبعاد", price: 250, image: "https://wanddo.shop/cdn/shop/files/2D_Sticky_Note_Holder.png", category: "office-accessories" },
+      { name: "علامة اسم نصية", price: 135, image: "https://wanddo.shop/cdn/shop/files/WandDo-215.jpg", category: "office-accessories" },
+      { name: "غطاء قلم الرصاص بالاسم", price: 75, image: "https://wanddo.shop/cdn/shop/files/image_34.png", category: "office-accessories" },
+      { name: "ألفا ديسك دوو", price: 430, image: "https://wanddo.shop/cdn/shop/files/Alpha_Desk_Duo.jpg", category: "office-accessories" },
+      { name: "كابينة مكتب ميناتل", price: 425, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_53.png", category: "office-accessories" },
+      { name: "إطار التوهج الكلاسيكي", price: 390, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_41.png", category: "home-decor" },
+      { name: "إطار زخرفي عربي", price: 725, image: "https://wanddo.shop/cdn/shop/files/CopyofFRAMESPOST_64.png", category: "home-decor" },
+      { name: "علاقة مذكرات عتبة الباب", price: 630, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_28.png", category: "home-decor" },
+      { name: "كشك ثلاجة مناتل", price: 295, image: "https://wanddo.shop/cdn/shop/files/CopyofFRAMESPOST_55.png", category: "home-decor" },
+      { name: "حاملة أكياس", price: 155, image: "https://wanddo.shop/cdn/shop/files/vkNKHLohtX5Au2Nh4A5F6HnPZN8RaQybIVk3e8DT.png", category: "home-decor" },
+      { name: "مصباح الأكورديون", price: 599, image: "https://wanddo.shop/cdn/shop/files/WAN-TL-103N-1L.jpg", category: "home-decor" },
+      { name: "مصباح آية", price: 999, image: "https://wanddo.shop/cdn/shop/files/WAN-TL-113N-1L.jpg", category: "home-decor" },
+      { name: "عصا الدفع السحرية", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Gemini_Generated_Image.png", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - كسوف شمسي", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Solar_Eclipse.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - ضبابي الخزامى", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Lavender_Mist.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - لؤلؤة وردية", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Blush_Pearl.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - وردي زاهي", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Rose_Pop.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - صقيع التوت", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Raspberry_Frost.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - صقيع الياقوت", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Ruby_Frost_bd350543-7158-44b6-9abb-947d82e2a8e3.webp", category: "special-gifts" },
+      { name: "عصا الدفع السحرية - أزهار النعناع", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Mint_Blossom.webp", category: "special-gifts" },
+      { name: "غطاء كيكة توديع العزوبية", price: 160, image: "https://wanddo.shop/cdn/shop/files/WandDo-253.jpg", category: "special-gifts" },
+      { name: "نرد متوازن", price: 100, image: "https://wanddo.shop/cdn/shop/files/W8J2g9nD4jlSoX0zXEMbGq5Hyfs4eyuJLCyJGfpb.png", category: "special-gifts" },
+      { name: "بينغ بونغ على الشاطئ", price: 710, image: "https://wanddo.shop/cdn/shop/files/tJP0aReIzxETORGqGTzJ12f1qagvfQQyVNvRSJlN.png", category: "special-gifts" },
+    ];
+
+    const WHATSAPP_LINK = "https://api.whatsapp.com/send/?phone=201055190003";
+    const ALL_CATEGORIES = [...CATEGORIES, ...EXTRA_CATEGORIES];
+    const ALL_PRODUCTS = [...PRODUCTS, ...EXTRA_PRODUCTS];
+
+    // ============ RENDER FUNCTIONS ============
+
+    function formatPrice(price) {
+      return "LE " + price.toLocaleString('en-US');
+    }
+
+    function getWhatsAppProductLink(product) {
+      const msg = encodeURIComponent("أريد طلب: " + product.name + " - " + formatPrice(product.price));
+      return WHATSAPP_LINK + "&text=" + msg;
+    }
+
+    // ============ CATEGORIES ============
+
+    function renderCategories() {
+      const carousel = document.getElementById('categoryCarousel');
+      let html = '';
+      ALL_CATEGORIES.forEach(cat => {
+        html += `
+          <a href="#products" onclick="scrollToCategory('${cat.id}')" class="category-card flex-shrink-0 w-48 sm:w-56 md:w-64 relative rounded-2xl overflow-hidden cursor-pointer group">
+            <img src="${cat.image}" alt="${cat.titleAr}" crossorigin="anonymous"
+                 class="w-full h-56 sm:h-64 object-cover transition-transform duration-500">
+            <div class="category-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 transition-opacity duration-300"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+              <p class="text-white/50 text-[10px] tracking-wider uppercase mb-1">${cat.titleEn}</p>
+              <p class="text-white font-bold text-sm">${cat.titleAr}</p>
+            </div>
+          </a>
+        `;
+      });
+      carousel.innerHTML = html;
+    }
+
+    function scrollToCategory(catId) {
+      setTimeout(() => {
+        const el = document.getElementById('cat-' + catId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+
+    function scrollCategories(direction) {
+      const carousel = document.getElementById('categoryCarousel');
+      const scrollAmount = 260;
+      carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+
+    // ============ PRODUCTS ============
+
+    function renderProductSections() {
+      const container = document.getElementById('productSections');
+      let html = '';
+
+      ALL_CATEGORIES.forEach(cat => {
+        const products = ALL_PRODUCTS.filter(p => p.category === cat.id);
+        if (products.length === 0) return;
+
+        html += `
+          <div id="cat-${cat.id}" class="mb-12 sm:mb-16">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <p class="text-white/40 text-xs tracking-wider uppercase mb-1">${cat.titleEn}</p>
+                <h3 class="text-xl sm:text-2xl font-bold">${cat.titleAr}</h3>
+              </div>
+              <a href="${WHATSAPP_LINK}&text=${encodeURIComponent('أريد معرفة المزيد عن مجموعة: ' + cat.titleAr)}" target="_blank"
+                 class="text-gold text-sm hover:underline flex items-center gap-1">
+                اطلب الكل
+                <svg class="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              ${products.map(p => renderProductCard(p)).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function renderProductCard(product) {
+      const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+      const discountPercent = hasDiscount ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
+
+      return `
+        <div class="product-card bg-card border border-white/5 rounded-xl overflow-hidden cursor-pointer card-glow transition-all hover:border-white/10"
+             onclick="openModal(${ALL_PRODUCTS.indexOf(product)})">
+          <div class="relative aspect-square overflow-hidden">
+            <img src="${product.image}" alt="${product.name}" crossorigin="anonymous"
+                 class="product-img w-full h-full object-cover transition-transform duration-500" loading="lazy">
+            ${hasDiscount ? `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">خصم ${discountPercent}%</span>` : ''}
+            <div class="product-overlay absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+              <a href="${getWhatsAppProductLink(product)}" target="_blank" rel="noopener noreferrer"
+                 onclick="event.stopPropagation()"
+                 class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                اطلب عبر واتساب
+              </a>
+            </div>
+          </div>
+          <div class="p-2.5 sm:p-3">
+            <p class="text-white/80 text-[11px] sm:text-xs leading-relaxed line-clamp-2 mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${product.name}</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="gold-text font-bold text-xs sm:text-sm">${formatPrice(product.price)}</span>
+              ${hasDiscount ? `<span class="text-white/30 line-through text-[10px] sm:text-xs">${formatPrice(product.originalPrice)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============ FOOTER CATEGORY LINKS ============
+
+    function renderFooterLinks() {
+      const container = document.getElementById('footerCategoryLinks');
+      let html = '';
+      ALL_CATEGORIES.forEach(cat => {
+        html += `<li><a href="javascript:void(0)" onclick="scrollToCategory('${cat.id}')" class="hover:text-white transition-colors">${cat.titleAr}</a></li>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ============ MODAL ============
+
+    function openModal(index) {
+      const product = ALL_PRODUCTS[index];
+      if (!product) return;
+
+      const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+      const discountPercent = hasDiscount ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
+
+      document.getElementById('modalImage').src = product.image;
+      document.getElementById('modalImage').alt = product.name;
+      document.getElementById('modalName').textContent = product.name;
+      document.getElementById('modalPrice').textContent = formatPrice(product.price);
+
+      const badge = document.getElementById('modalBadge');
+      if (hasDiscount) {
+        badge.textContent = 'خصم ' + discountPercent + '%';
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      const originalPriceEl = document.getElementById('modalOriginalPrice');
+      if (hasDiscount) {
+        originalPriceEl.textContent = formatPrice(product.originalPrice);
+        originalPriceEl.classList.remove('hidden');
+      } else {
+        originalPriceEl.classList.add('hidden');
+      }
+
+      document.getElementById('modalWhatsApp').href = getWhatsAppProductLink(product);
+      document.getElementById('productModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // ============ NAVBAR SCROLL ============
+
+    function handleNavScroll() {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('nav-scrolled');
+      } else {
+        navbar.classList.remove('nav-scrolled');
+      }
+    }
+
+    // ============ MOBILE MENU ============
+
+    let menuOpen = false;
+
+    function toggleMenu() {
+      menuOpen = !menuOpen;
+      const menu = document.getElementById('mobileMenu');
+      const hamburger = document.getElementById('hamburgerIcon');
+      const close = document.getElementById('closeIcon');
+
+      if (menuOpen) {
+        menu.classList.remove('hidden');
+        hamburger.classList.add('hidden');
+        close.classList.remove('hidden');
+      } else {
+        menu.classList.add('hidden');
+        hamburger.classList.remove('hidden');
+        close.classList.add('hidden');
+      }
+    }
+
+    function closeMenu() {
+      if (menuOpen) toggleMenu();
+    }
+
+    // ============ CUSTOM ORDER ============
+
+    function updateCharCount() {
+      const textarea = document.getElementById('customOrderText');
+      const counter = document.getElementById('charCount');
+      const btn = document.getElementById('sendCustomOrder');
+      const len = textarea.value.length;
+
+      counter.textContent = len + ' / 500';
+      btn.disabled = len === 0;
+    }
+
+    function sendCustomOrder() {
+      const textarea = document.getElementById('customOrderText');
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      const msg = encodeURIComponent("طلب موديل خاص:\n" + text);
+      window.open(WHATSAPP_LINK + "&text=" + msg, '_blank');
+    }
+
+    // ============ INIT ============
+
+    window.addEventListener('scroll', handleNavScroll);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategories();
+      renderProductSections();
+      renderFooterLinks();
+      handleNavScroll();
+    });
+  </script>
+</body>
+</html>
