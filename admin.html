@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم - برق بنزين</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-tertiary: #1a1a1a;
+      --gold: #e2b04a;
+      --gold-light: #f5d89a;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.7);
+      --text-muted: rgba(255,255,255,0.4);
+      --border: rgba(255,255,255,0.08);
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+    .gold-text {
+      background: linear-gradient(135deg, #e2b04a 0%, #f5d89a 50%, #e2b04a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gold-border { border-color: var(--gold) !important; }
+    .gold-bg { background-color: var(--gold); }
+    .gold-bg:hover { background-color: var(--gold-light); }
+
+    /* Login */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    .shake { animation: shake 0.6s ease-in-out; }
+
+    /* Toast */
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(-100%); opacity: 0; }
+    }
+    .toast-in { animation: slideDown 0.3s ease-out; }
+    .toast-out { animation: slideUp 0.3s ease-in forwards; }
+
+    /* Modal */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-overlay { animation: fadeIn 0.2s ease-out; }
+    .modal-content { animation: scaleIn 0.2s ease-out; }
+
+    /* Sidebar */
+    .sidebar { width: 260px; transition: transform 0.3s ease; }
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; z-index: 50; transform: translateX(100%); }
+      .sidebar.open { transform: translateX(0); }
+    }
+
+    /* Input styling */
+    .admin-input {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    .admin-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(226, 176, 74, 0.15);
+    }
+    .admin-input::placeholder { color: var(--text-muted); }
+    .admin-textarea {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .admin-textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(226, 176, 74, 0.15);
+    }
+    .admin-select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      cursor: pointer;
+    }
+    .admin-select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(226, 176, 74, 0.15);
+    }
+    .admin-select option { background: var(--bg-secondary); color: var(--text-primary); }
+
+    /* Table */
+    .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .admin-table thead th {
+      background: var(--bg-tertiary);
+      padding: 12px 16px;
+      text-align: right;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-table tbody tr { transition: background 0.15s; }
+    .admin-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    .admin-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+    .admin-table tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    /* Toggle switch */
+    .toggle-switch { position: relative; width: 48px; height: 26px; cursor: pointer; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 20px; width: 20px;
+      right: 2px; bottom: 2px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--gold); border-color: var(--gold); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(-22px); background: var(--bg-primary); }
+
+    /* Card */
+    .admin-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .admin-card:hover { border-color: rgba(226, 176, 74, 0.2); }
+
+    /* Stat card */
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: rgba(226, 176, 74, 0.3); transform: translateY(-2px); }
+
+    /* Bar chart */
+    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; padding: 0 8px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+    .bar {
+      width: 100%; max-width: 40px;
+      background: linear-gradient(to top, var(--gold), var(--gold-light));
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+      min-height: 2px;
+    }
+    .bar-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .bar-value { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+
+    /* Nav item */
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s;
+      color: var(--text-secondary); font-size: 14px; font-weight: 500;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .nav-item.active { background: rgba(226, 176, 74, 0.1); color: var(--gold); }
+
+    /* Button styles */
+    .btn-gold {
+      background: var(--gold);
+      color: var(--bg-primary);
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-outline:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,0.1); border-color: var(--danger); }
+    .btn-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+    .btn-icon.danger:hover { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-gold { background: rgba(226,176,74,0.15); color: var(--gold); }
+    .badge-green { background: rgba(34,197,94,0.15); color: var(--success); }
+    .badge-gray { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    /* Promo banner preview */
+    .promo-preview {
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+      color: var(--bg-primary);
+      font-weight: 700;
+      padding: 10px 0;
+      overflow: hidden;
+      position: relative;
+      border-radius: 8px;
+    }
+    .promo-preview-text {
+      display: inline-block;
+      white-space: nowrap;
+      animation: scrollText 10s linear infinite;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Mobile table */
+    @media (max-width: 768px) {
+      .admin-table thead { display: none; }
+      .admin-table tbody tr {
+        display: block;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        padding: 12px;
+      }
+      .admin-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .admin-table tbody td:last-child { border-bottom: none; }
+      .admin-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+    }
+
+    /* File input */
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Color input */
+    input[type="color"] {
+      width: 48px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+      padding: 2px;
+    }
+
+    /* Sidebar overlay for mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 40;
+    }
+    @media (max-width: 768px) {
+      .sidebar-overlay.show { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div id="toastContainer" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;"></div>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg-primary);padding:20px;">
+  <div style="width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style="margin:0 auto 16px;">
+        <rect width="60" height="60" rx="12" fill="url(#loginGrad)"/>
+        <path d="M30 15L40 22V38L30 45L20 38V22L30 15Z" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+        <path d="M30 20L36 24V36L30 40L24 36V24L30 20Z" fill="#0a0a0a" opacity="0.3"/>
+        <defs><linearGradient id="loginGrad" x1="0" y1="0" x2="60" y2="60"><stop stop-color="#e2b04a"/><stop offset="1" stop-color="#f5d89a"/></linearGradient></defs>
+      </svg>
+      <h1 class="gold-text" style="font-size:28px;font-weight:800;margin-bottom:4px;">برق بنزين</h1>
+      <p style="color:var(--text-muted);font-size:14px;">لوحة التحكم</p>
+    </div>
+    <div class="admin-card" style="padding:32px;" id="loginCard">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:24px;text-align:center;">تسجيل الدخول</h2>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--text-secondary);margin-bottom:8px;">كلمة المرور</label>
+        <div style="position:relative;">
+          <input type="password" id="passwordInput" maxlength="6" class="admin-input" placeholder="أدخل كلمة المرور (6 أرقام)" style="padding-left:44px;text-align:center;font-size:20px;letter-spacing:8px;" onkeydown="if(event.key==='Enter')doLogin()">
+          <button onclick="togglePasswordVisibility()" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;" type="button">
+            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button onclick="doLogin()" class="btn-gold" style="width:100%;justify-content:center;padding:12px;font-size:16px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        دخول
+      </button>
+      <p id="loginError" style="color:var(--danger);font-size:13px;text-align:center;margin-top:12px;display:none;">كلمة المرور غير صحيحة</p>
+    </div>
+    <p style="text-align:center;margin-top:24px;">
+      <a href="brq-benzine.html" style="color:var(--text-muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:4px;"><path d="M15 18l-6-6 6-6"/></svg>
+        عرض الموقع
+      </a>
+    </p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;">
+  <!-- Sidebar Overlay (mobile) -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar" style="position:fixed;top:0;right:0;bottom:0;background:var(--bg-secondary);border-left:1px solid var(--border);z-index:50;display:flex;flex-direction:column;overflow-y:auto;">
+    <div style="padding:20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+      <svg width="36" height="36" viewBox="0 0 60 60" fill="none">
+        <rect width="60" height="60" rx="12" fill="url(#sideGrad)"/>
+        <path d="M30 15L40 22V38L30 45L20 38V22L30 15Z" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+        <path d="M30 20L36 24V36L30 40L24 36V24L30 20Z" fill="#0a0a0a" opacity="0.3"/>
+        <defs><linearGradient id="sideGrad" x1="0" y1="0" x2="60" y2="60"><stop stop-color="#e2b04a"/><stop offset="1" stop-color="#f5d89a"/></linearGradient></defs>
+      </svg>
+      <div>
+        <h2 class="gold-text" style="font-size:16px;font-weight:700;">لوحة التحكم</h2>
+        <p style="font-size:11px;color:var(--text-muted);">برق بنزين</p>
+      </div>
+      <button onclick="toggleSidebar()" style="margin-right:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;display:none;" class="md-hidden" id="closeSidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav style="padding:12px 10px;flex:1;display:flex;flex-direction:column;gap:2px;">
+      <div class="nav-item active" onclick="navigateTo('dashboard')" data-page="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        لوحة المعلومات
+      </div>
+      <div class="nav-item" onclick="navigateTo('settings')" data-page="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        إعدادات الموقع
+      </div>
+      <div class="nav-item" onclick="navigateTo('products')" data-page="products">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        المنتجات
+      </div>
+      <div class="nav-item" onclick="navigateTo('categories')" data-page="categories">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        المجموعات
+      </div>
+      <div class="nav-item" onclick="navigateTo('contacts')" data-page="contacts">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        التواصل
+      </div>
+      <div class="nav-item" onclick="navigateTo('announcements')" data-page="announcements">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        الإعلانات
+      </div>
+      <div class="nav-item" onclick="navigateTo('promo')" data-page="promo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        شريط العروض
+      </div>
+    </nav>
+    <div style="padding:12px 10px;border-top:1px solid var(--border);">
+      <a href="brq-benzine.html" style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;color:var(--text-secondary);font-size:13px;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent';this.style.color='var(--text-secondary)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        عرض الموقع
+      </a>
+      <div class="nav-item" onclick="doLogout()" style="color:var(--danger);margin-top:2px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        تسجيل الخروج
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="mainContent" style="margin-right:260px;min-height:100vh;padding:24px;transition:margin 0.3s;">
+    <!-- Top Bar (mobile) -->
+    <div id="topBar" style="display:none;margin-bottom:20px;">
+      <button onclick="toggleSidebar()" style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);padding:10px 12px;border-radius:8px;cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Pages -->
+    <div id="page-dashboard"></div>
+    <div id="page-settings" style="display:none;"></div>
+    <div id="page-products" style="display:none;"></div>
+    <div id="page-categories" style="display:none;"></div>
+    <div id="page-contacts" style="display:none;"></div>
+    <div id="page-announcements" style="display:none;"></div>
+    <div id="page-promo" style="display:none;"></div>
+  </main>
+</div>
+
+<script>
+// ==================== DEFAULT DATA ====================
+function getDefaultData() {
+  return {
+    settings: {
+      siteName: "برق بنزين",
+      siteNameEn: "3D Automotive Art",
+      logo: null,
+      defaultTheme: "dark"
+    },
+    contacts: [
+      { id: "whatsapp", platform: "واتساب", handle: "01055190003", link: "https://api.whatsapp.com/send/?phone=201055190003", color: "#25D366", type: "whatsapp" },
+      { id: "instagram", platform: "انستجرام", handle: "@3d.vision.printerest", link: "https://www.instagram.com/3d.vision.printerest?igsh=ZmlncHEyY2wyenNl", color: "#E1306C", type: "instagram" },
+      { id: "tiktok", platform: "تيك توك", handle: "@3d_vision1", link: "https://www.tiktok.com/@3d_vision1?_r=1&_t=ZS-97ewic5tnMa", color: "#ffffff", type: "tiktok" }
+    ],
+    categories: [
+      { id: "frames", titleAr: "إطارات السيارات", titleEn: "FRAMES", descriptionAr: "إطارات فنية ثلاثية الأبعاد لسياراتك المفضلة", image: "https://velocity-eg.net/cdn/shop/files/082FF395-E1CA-4B55-8092-B5352130107E.png" },
+      { id: "back-keyholders", titleAr: "حاملات المفاتيح الخلفية", titleEn: "BACK KEY HOLDERS", descriptionAr: "بيت فاخر لمفاتيحك مستوحى من السيارات الأيقونية", image: "https://velocity-eg.net/cdn/shop/files/C4B26CF7-F565-46BE-B1AA-E2218A8FFD1B_1.png" },
+      { id: "front-keyholders", titleAr: "حاملات المفاتيح الأمامية", titleEn: "FRONT KEYHOLDERS", descriptionAr: "حاملات مفاتيح بتصميم الواجهة الأمامية للسيارات", image: "https://velocity-eg.net/cdn/shop/files/CE8BD07B-2C82-4361-949E-33763CC99CA7.webp" },
+      { id: "spoiler-keyholders", titleAr: "حاملات المفاتيح سبويلر", titleEn: "SPOILER KEYHOLDERS", descriptionAr: "حوّل الجناح الخلفي الأيقوني إلى مكان مثالي لمفاتيحك", image: "https://velocity-eg.net/cdn/shop/files/6ADC2109-9E9F-4C93-A5AD-0DAD07DCC06A_1.png" },
+      { id: "office-accessories", titleAr: "إكسسوارات مكتبية", titleEn: "OFFICE ACCESSORIES", descriptionAr: "قطع مميزة لتنظيم مكتبك بأسلوب فريد", image: "https://wanddo.shop/cdn/shop/files/BLCK_FRIDAY_POSTS_2_4ad15c16-841f-4a08-b214-bab3aca4d365.png" },
+      { id: "home-decor", titleAr: "ديكور المنزل", titleEn: "HOME DECOR", descriptionAr: "ديكورات وإضاءة لإضفاء لمسة فنية على مساحتك", image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_41.png" },
+      { id: "special-gifts", titleAr: "هدايا مميزة", titleEn: "SPECIAL GIFTS", descriptionAr: "هدايا فريدة وقطع مميزة لكل مناسبة", image: "https://wanddo.shop/cdn/shop/files/Gemini_Generated_Image.png" }
+    ],
+    products: [
+      { id: "p1", name: "BMW M4 Competition – Twilight Purple Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/082FF395-E1CA-4B55-8092-B5352130107E.png", category: "frames" },
+      { id: "p2", name: "BMW M4 Competition – Toronto Red Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/DF4B9E86-BD08-4099-8261-BDF0B3F04CCD.png", category: "frames" },
+      { id: "p3", name: "BMW M4 Competition – Lime Yellow", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/2D841503-B7BF-43ED-9097-E5CE4D3513D5.png", category: "frames" },
+      { id: "p4", name: "BMW M4 Competition – Grey", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/35F1628B-C3C3-45DB-8638-C228436A2596.png", category: "frames" },
+      { id: "p5", name: "BMW M4 Competition – Green Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/F9D3E7BC-55A0-449C-9055-D641248357F2.png", category: "frames" },
+      { id: "p6", name: "BMW M4 Competition – Frozen Black Matte", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/D8C40946-C131-44F6-985F-11CDCCD2757F.png", category: "frames" },
+      { id: "p7", name: "BMW M4 Competition – Black Metallic", price: 3300, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/451296C3-1D4E-4202-9109-45864FD9EE1C.png", category: "frames" },
+      { id: "p8", name: "BMW 340i M white", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/0991306F-C1CC-4C53-A234-8BD03ADE741C_2.png", category: "frames" },
+      { id: "p9", name: "BMW 340i M nardo Gray", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/686245BE-5E96-46E4-9BAD-ADCFBEF873B1_1.png", category: "frames" },
+      { id: "p10", name: "BMW 340i M black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/0C103B50-81E9-4EEF-B4EC-6644F0316C88.webp", category: "frames" },
+      { id: "p11", name: "BMW 340i M Portimao blue", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/CAC2DAC2-716D-4055-AB35-EE66833301FF_1.png", category: "frames" },
+      { id: "p12", name: "G-CLASS Super Black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/BCFE9067-0D1B-4E5C-B0B4-B5554EB43043.webp", category: "frames" },
+      { id: "p13", name: "G-CLASS Black Matte", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/AB64B5C2-0621-42FF-9342-272FAABD064D_1.png", category: "frames" },
+      { id: "p14", name: "G-CLASS Silver", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/55D79EA0-CE71-4522-B6B6-313FF75ED94A_1.png", category: "frames" },
+      { id: "p15", name: "G-CLASS Moonlight White", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/DB0454C9-ACD7-4B5A-8E4E-C7C2E39668A7_1.png", category: "frames" },
+      { id: "p16", name: "G-CLASS Gold", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/8ACA9955-4602-498E-8FAF-C3926312AB35_1.png", category: "frames" },
+      { id: "p17", name: "Porsche 911 GT3 RS Nardo Gray", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/624981A1-0505-4FAF-984E-96FB58A67A36_1.png", category: "frames" },
+      { id: "p18", name: "Porsche 911 GT3 RS Red", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/6FD5A096-AE56-4643-9C6B-5413EEF1EC77_1.png", category: "frames" },
+      { id: "p19", name: "Porsche 911 GT3 RS Black", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/63ADBAD7-A33F-45C6-88B6-07D8AB3C1D10_1_1.png", category: "frames" },
+      { id: "p20", name: "Porsche 911 GT3 RS Pink", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/9348D5F1-151F-4BB8-84F9-CAD4666CAF9F_1.png", category: "frames" },
+      { id: "p21", name: "Porsche 911 GT3 RS Blue", price: 3200, originalPrice: 4000, image: "https://velocity-eg.net/cdn/shop/files/94A6D108-58C7-44FD-AB06-F21C6355A508.webp", category: "frames" },
+      { id: "p22", name: "Alfa Romeo Giulia Quadrifoglio - Black", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/88C17702-DF16-4F7A-91AF-461040A46168.png", category: "frames" },
+      { id: "p23", name: "Alfa Romeo Giulia Quadrifoglio – Competizione Red", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/CF114E02-1B86-4C6D-85EB-81684A778802.png", category: "frames" },
+      { id: "p24", name: "Alfa Romeo Giulia Quadrifoglio – Montreal Green Metallic", price: 3200, image: "https://velocity-eg.net/cdn/shop/files/3ED12691-8C20-4856-9827-F7F4E7DF5798.png", category: "frames" },
+      { id: "p25", name: "White Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/C4B26CF7-F565-46BE-B1AA-E2218A8FFD1B_1.png", category: "back-keyholders" },
+      { id: "p26", name: "Gray Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/79C41D83-4E26-4569-9261-C21B8A219041_1.png", category: "back-keyholders" },
+      { id: "p27", name: "Black Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/2155F75F-5F0F-4365-9703-93EF455AB64F.jpg", category: "back-keyholders" },
+      { id: "p28", name: "Red Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/7DB7ADD0-0C37-4D41-B0A9-04BA4176E505.jpg", category: "back-keyholders" },
+      { id: "p29", name: "Blue Porsche 911 GT3 RS Back Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/BF5F8925-D191-4A66-8B9A-E933CF74C6DF.jpg", category: "back-keyholders" },
+      { id: "p30", name: "Matte Gray – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/CE8BD07B-2C82-4361-949E-33763CC99CA7.webp", category: "front-keyholders" },
+      { id: "p31", name: "Silver – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/0912A7EF-A5ED-4A3E-AE67-0142E3E95F94_1.png", category: "front-keyholders" },
+      { id: "p32", name: "Black – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/7BAF4C2B-E260-4F00-9A9D-2617BFBAD876.webp", category: "front-keyholders" },
+      { id: "p33", name: "White – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/4E62FBC3-826E-48AA-B9D0-6EBA155E6BF7_1_1.png", category: "front-keyholders" },
+      { id: "p34", name: "Matte Red – Porsche Cayenne Front Key Holder", price: 1500, image: "https://velocity-eg.net/cdn/shop/files/2C9555A6-713C-4D3F-92DD-FC61275017F4_1.png", category: "front-keyholders" },
+      { id: "p35", name: "Gray – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/6ADC2109-9E9F-4C93-A5AD-0DAD07DCC06A_1.png", category: "spoiler-keyholders" },
+      { id: "p36", name: "Red – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/27D9CB4E-7686-475E-9CE4-4415CA91A246_1.png", category: "spoiler-keyholders" },
+      { id: "p37", name: "Gold – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/5233A979-900A-4C73-A101-F46703572887_1_1.png", category: "spoiler-keyholders" },
+      { id: "p38", name: "White – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/AA649905-EFE0-4C16-A8CC-4AA3EFD4E85B_1.webp", category: "spoiler-keyholders" },
+      { id: "p39", name: "Blue – Porsche GT3 RS Spoiler Key Holder", price: 1000, originalPrice: 1500, image: "https://velocity-eg.net/cdn/shop/files/B3EA3A6B-B8E7-445A-B5A0-DBD3B52EE1DD.webp", category: "spoiler-keyholders" },
+      { id: "p40", name: "حامل أقلام ولوحة اسم مكتبي ثلاثي الأبعاد", price: 345, image: "https://wanddo.shop/cdn/shop/files/BLCK_FRIDAY_POSTS_2_4ad15c16-841f-4a08-b214-bab3aca4d365.png", category: "office-accessories" },
+      { id: "p41", name: "حامل أقلام ثلاثي الأبعاد لافتة مكتبية بلون إصدار محدود", price: 400, image: "https://wanddo.shop/cdn/shop/files/13.png", category: "office-accessories" },
+      { id: "p42", name: "حامل أقلام توك توك", price: 350, image: "https://wanddo.shop/cdn/shop/files/Front.jpg", category: "office-accessories" },
+      { id: "p43", name: "حامل أقلام على شكل خلية نحل", price: 350, image: "https://wanddo.shop/cdn/shop/files/3893000.png", category: "office-accessories" },
+      { id: "p44", name: "مقلمة الأقلام", price: 395, image: "https://wanddo.shop/cdn/shop/files/Pencil_Case.jpg", category: "office-accessories" },
+      { id: "p45", name: "حافظة أقلام وحامل أقلام 2 في 1 بتصميم الآيس كريم", price: 435, image: "https://wanddo.shop/cdn/shop/files/20250821_1209_IceCreamPencilCase_remix_01k35y522wftq8p1gydyxa9244_1.png", category: "office-accessories" },
+      { id: "p46", name: "حامل أوراق الملاحظات اللاصقة", price: 419, originalPrice: 455, image: "https://wanddo.shop/cdn/shop/files/Flamingo_Pink.jpg", category: "office-accessories" },
+      { id: "p47", name: "حامل أوراق الملاحظات اللاصقة ثنائي الأبعاد", price: 250, image: "https://wanddo.shop/cdn/shop/files/2D_Sticky_Note_Holder.png", category: "office-accessories" },
+      { id: "p48", name: "علامة اسم نصية", price: 135, image: "https://wanddo.shop/cdn/shop/files/WandDo-215.jpg", category: "office-accessories" },
+      { id: "p49", name: "غطاء قلم الرصاص بالاسم", price: 75, image: "https://wanddo.shop/cdn/shop/files/image_34.png", category: "office-accessories" },
+      { id: "p50", name: "ألفا ديسك دوو", price: 430, image: "https://wanddo.shop/cdn/shop/files/Alpha_Desk_Duo.jpg", category: "office-accessories" },
+      { id: "p51", name: "كابينة مكتب ميناتل", price: 425, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_53.png", category: "office-accessories" },
+      { id: "p52", name: "إطار التوهج الكلاسيكي", price: 390, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_41.png", category: "home-decor" },
+      { id: "p53", name: "إطار زخرفي عربي", price: 725, image: "https://wanddo.shop/cdn/shop/files/CopyofFRAMESPOST_64.png", category: "home-decor" },
+      { id: "p54", name: "علاقة مذكرات عتبة الباب", price: 630, image: "https://wanddo.shop/cdn/shop/files/Copy_of_FRAMES_POST_28.png", category: "home-decor" },
+      { id: "p55", name: "كشك ثلاجة مناتل", price: 295, image: "https://wanddo.shop/cdn/shop/files/CopyofFRAMESPOST_55.png", category: "home-decor" },
+      { id: "p56", name: "حاملة أكياس", price: 155, image: "https://wanddo.shop/cdn/shop/files/vkNKHLohtX5Au2Nh4A5F6HnPZN8RaQybIVk3e8DT.png", category: "home-decor" },
+      { id: "p57", name: "مصباح الأكورديون", price: 599, image: "https://wanddo.shop/cdn/shop/files/WAN-TL-103N-1L.jpg", category: "home-decor" },
+      { id: "p58", name: "مصباح آية", price: 999, image: "https://wanddo.shop/cdn/shop/files/WAN-TL-113N-1L.jpg", category: "home-decor" },
+      { id: "p59", name: "عصا الدفع السحرية", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Gemini_Generated_Image.png", category: "special-gifts" },
+      { id: "p60", name: "عصا الدفع السحرية - كسوف شمسي", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Solar_Eclipse.webp", category: "special-gifts" },
+      { id: "p61", name: "عصا الدفع السحرية - ضبابي الخزامى", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Lavender_Mist.webp", category: "special-gifts" },
+      { id: "p62", name: "عصا الدفع السحرية - لؤلؤة وردية", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Blush_Pearl.webp", category: "special-gifts" },
+      { id: "p63", name: "عصا الدفع السحرية - وردي زاهي", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Rose_Pop.webp", category: "special-gifts" },
+      { id: "p64", name: "عصا الدفع السحرية - صقيع التوت", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Raspberry_Frost.webp", category: "special-gifts" },
+      { id: "p65", name: "عصا الدفع السحرية - صقيع الياقوت", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Ruby_Frost_bd350543-7158-44b6-9abb-947d82e2a8e3.webp", category: "special-gifts" },
+      { id: "p66", name: "عصا الدفع السحرية - أزهار النعناع", price: 395, originalPrice: 480, image: "https://wanddo.shop/cdn/shop/files/Fairy_Pay_Wand_-_Mint_Blossom.webp", category: "special-gifts" },
+      { id: "p67", name: "غطاء كيكة توديع العزوبية", price: 160, image: "https://wanddo.shop/cdn/shop/files/WandDo-253.jpg", category: "special-gifts" },
+      { id: "p68", name: "نرد متوازن", price: 100, image: "https://wanddo.shop/cdn/shop/files/W8J2g9nD4jlSoX0zXEMbGq5Hyfs4eyuJLCyJGfpb.png", category: "special-gifts" },
+      { id: "p69", name: "بينغ بونغ على الشاطئ", price: 710, image: "https://wanddo.shop/cdn/shop/files/tJP0aReIzxETORGqGTzJ12f1qagvfQQyVNvRSJlN.png", category: "special-gifts" }
+    ],
+    promoBanner: {
+      text: "اشتري 3 واحصل على خصم 10% + شحن مجاني ★",
+      active: true
+    },
+    announcements: [],
+    testimonials: [
+      { id: "t1", text: "وصل! شكراً جداً، شغلك مذهل فعلاً. أحلى من الصور! 🙏🏻🤍", author: "عميل سعيد", rating: 5 },
+      { id: "t2", text: "جامد أوي بصراحة", author: "عميل سعيد", rating: 5 }
+    ],
+    stats: {
+      visitorCount: 0,
+      dailyVisits: {}
+    }
+  };
+}
+
+// ==================== DATA MANAGEMENT ====================
+let appData = null;
+
+function loadData() {
+  try {
+    const stored = localStorage.getItem('brq_data');
+    if (stored) {
+      appData = JSON.parse(stored);
+    } else {
+      appData = getDefaultData();
+      saveData();
+    }
+  } catch (e) {
+    appData = getDefaultData();
+    saveData();
+  }
+  return appData;
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('brq_data', JSON.stringify(appData));
+  } catch (e) {
+    showToast('خطأ في حفظ البيانات', 'error');
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function generateId() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// ==================== TOAST ====================
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  const bgColor = type === 'success' ? 'rgba(34,197,94,0.95)' : type === 'error' ? 'rgba(239,68,68,0.95)' : 'rgba(226,176,74,0.95)';
+  const icon = type === 'success'
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : type === 'error'
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  toast.className = 'toast-in';
+  toast.style.cssText = `background:${bgColor};color:white;padding:12px 20px;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:14px;font-family:'Cairo',sans-serif;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.4);min-width:280px;justify-content:center;`;
+  toast.innerHTML = icon + '<span>' + message + '</span>';
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.className = 'toast-out';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ==================== MODAL ====================
+function showModal(content, onClose) {
+  const container = document.getElementById('modalContainer');
+  container.innerHTML = `
+    <div class="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeModal()">
+      <div class="modal-content" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
+        <button onclick="closeModal()" style="position:absolute;top:16px;left:16px;background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;border-radius:6px;transition:all 0.2s;z-index:10;" onmouseover="this.style.color='var(--text-primary)';this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='none'">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div style="padding:28px;">
+          ${content}
+        </div>
+      </div>
+    </div>
+  `;
+  if (onClose) window._modalOnClose = onClose;
+}
+
+function showConfirmModal(message, onConfirm) {
+  showModal(`
+    <div style="text-align:center;padding:12px 0;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 16px;display:block;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">تأكيد الحذف</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:28px;">${message}</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn-danger" onclick="closeModal();(${onConfirm.toString()})()" style="padding:10px 28px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          حذف
+        </button>
+        <button class="btn-outline" onclick="closeModal()">إلغاء</button>
+      </div>
+    </div>
+  `);
+}
+
+function closeModal() {
+  document.getElementById('modalContainer').innerHTML = '';
+  if (window._modalOnClose) { window._modalOnClose(); window._modalOnClose = null; }
+}
+
+// ==================== AUTH ====================
+function doLogin() {
+  const input = document.getElementById('passwordInput');
+  const error = document.getElementById('loginError');
+  const card = document.getElementById('loginCard');
+  if (input.value === '857660') {
+    sessionStorage.setItem('admin_auth', '1');
+    showAdminPanel();
+  } else {
+    error.style.display = 'block';
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 600);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById('passwordInput');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkAuth() {
+  return sessionStorage.getItem('admin_auth') === '1';
+}
+
+// ==================== SIDEBAR & NAVIGATION ====================
+let currentPage = 'dashboard';
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function navigateTo(page) {
+  currentPage = page;
+  // Hide all pages
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+  // Show target page
+  const target = document.getElementById('page-' + page);
+  if (target) target.style.display = 'block';
+  // Update nav items
+  document.querySelectorAll('.nav-item[data-page]').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+  // Render page
+  renderPage(page);
+  // Close sidebar on mobile
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar.classList.contains('open')) toggleSidebar();
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+function renderPage(page) {
+  loadData();
+  switch(page) {
+    case 'dashboard': renderDashboard(); break;
+    case 'settings': renderSettings(); break;
+    case 'products': renderProducts(); break;
+    case 'categories': renderCategories(); break;
+    case 'contacts': renderContacts(); break;
+    case 'announcements': renderAnnouncements(); break;
+    case 'promo': renderPromo(); break;
+  }
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const d = appData;
+  const totalVisits = d.stats.visitorCount || 0;
+  const totalProducts = d.products.length;
+  const totalCategories = d.categories.length;
+  const activeAnnouncements = (d.announcements || []).filter(a => a.active).length;
+
+  // Get last 7 days
+  const days = [];
+  const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const key = date.toISOString().split('T')[0];
+    days.push({
+      label: dayNames[date.getDay()],
+      key: key,
+      visits: (d.stats.dailyVisits && d.stats.dailyVisits[key]) || 0
+    });
+  }
+  const maxVisits = Math.max(...days.map(d => d.visits), 1);
+
+  // Recent products (last 5)
+  const recentProducts = [...d.products].slice(-5).reverse();
+
+  document.getElementById('page-dashboard').innerHTML = `
+    <div style="margin-bottom:28px;">
+      <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">لوحة المعلومات</h1>
+      <p style="color:var(--text-muted);font-size:14px;">نظرة عامة على متجرك</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:var(--text-secondary);font-size:13px;font-weight:500;">إجمالي الزيارات</span>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(226,176,74,0.1);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </div>
+        <div style="font-size:28px;font-weight:800;" class="gold-text">${totalVisits}</div>
+      </div>
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:var(--text-secondary);font-size:13px;font-weight:500;">عدد المنتجات</span>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(226,176,74,0.1);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          </div>
+        </div>
+        <div style="font-size:28px;font-weight:800;" class="gold-text">${totalProducts}</div>
+      </div>
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:var(--text-secondary);font-size:13px;font-weight:500;">عدد المجموعات</span>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(226,176,74,0.1);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </div>
+        </div>
+        <div style="font-size:28px;font-weight:800;" class="gold-text">${totalCategories}</div>
+      </div>
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:var(--text-secondary);font-size:13px;font-weight:500;">الإعلانات النشطة</span>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(226,176,74,0.1);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+        </div>
+        <div style="font-size:28px;font-weight:800;" class="gold-text">${activeAnnouncements}</div>
+      </div>
+    </div>
+
+    <!-- Visitor Chart -->
+    <div class="admin-card" style="padding:24px;margin-bottom:28px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">زيارات آخر 7 أيام</h3>
+      <div class="bar-chart">
+        ${days.map(day => `
+          <div class="bar-col">
+            <div class="bar-value">${day.visits}</div>
+            <div class="bar" style="height:${Math.max((day.visits / maxVisits) * 100, 2)}%"></div>
+            <div class="bar-label">${day.label}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Quick Actions + Recent Products -->
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;">
+      <div class="admin-card" style="padding:24px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">إجراءات سريعة</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn-gold" onclick="navigateTo('products');setTimeout(()=>openProductModal(),100)" style="justify-content:center;width:100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة منتج جديد
+          </button>
+          <button class="btn-outline" onclick="navigateTo('announcements');setTimeout(()=>openAnnouncementModal(),100)" style="justify-content:center;width:100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة إعلان
+          </button>
+        </div>
+      </div>
+      <div class="admin-card" style="padding:24px;overflow-x:auto;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">أحدث المنتجات</h3>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="border-radius:0 8px 0 0;">الصورة</th>
+              <th>المنتج</th>
+              <th>المجموعة</th>
+              <th style="border-radius:8px 0 0 0;">السعر</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentProducts.map(p => {
+              const cat = d.categories.find(c => c.id === p.category);
+              return `
+                <tr>
+                  <td data-label="الصورة"><img src="${p.image}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect fill=%22%231a1a1a%22 width=%2250%22 height=%2250%22/><text x=%2225%22 y=%2230%22 fill=%22%23444%22 text-anchor=%22middle%22 font-size=%2212%22>?</text></svg>'"></td>
+                  <td data-label="المنتج" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</td>
+                  <td data-label="المجموعة"><span class="badge badge-gold">${cat ? cat.titleAr : p.category}</span></td>
+                  <td data-label="السعر" style="font-weight:600;">${p.price} ج.م</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== SETTINGS ====================
+function renderSettings() {
+  const d = appData;
+  const logoPreview = d.settings.logo
+    ? `<img src="${d.settings.logo}" alt="Logo" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+    : `<div style="width:100px;height:100px;border-radius:50%;background:var(--bg-tertiary);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>`;
+
+  document.getElementById('page-settings').innerHTML = `
+    <div style="margin-bottom:28px;">
+      <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">إعدادات الموقع</h1>
+      <p style="color:var(--text-muted);font-size:14px;">تخصيص إعدادات المتجر الأساسية</p>
+    </div>
+    <div class="admin-card" style="padding:28px;max-width:640px;">
+      <!-- Site Name -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;">اسم الموقع (عربي)</label>
+        <input type="text" id="settingSiteNameAr" class="admin-input" value="${d.settings.siteName}" placeholder="اسم الموقع بالعربي">
+      </div>
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;">اسم الموقع (إنجليزي)</label>
+        <input type="text" id="settingSiteNameEn" class="admin-input" value="${d.settings.siteNameEn || ''}" placeholder="Site subtitle in English" dir="ltr">
+      </div>
+
+      <!-- Logo -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:12px;">اللوجو</label>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div id="logoPreview">${logoPreview}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="file-input-wrapper">
+              <button class="btn-outline" style="pointer-events:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                رفع لوجو جديد
+              </button>
+              <input type="file" accept="image/*" onchange="handleLogoUpload(this)">
+            </div>
+            ${d.settings.logo ? `<button class="btn-danger" onclick="removeLogo()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              إزالة اللوجو
+            </button>` : ''}
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">الحد الأقصى لحجم الصورة: 2 ميجابايت</p>
+      </div>
+
+      <!-- Theme -->
+      <div style="margin-bottom:28px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:12px;">الثيم الافتراضي</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:14px;color:var(--text-secondary);">فاتح</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingTheme" ${d.settings.defaultTheme === 'dark' ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:14px;color:var(--text-secondary);">داكن</span>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button class="btn-gold" onclick="saveSettings()" style="padding:12px 32px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        حفظ التغييرات
+      </button>
+    </div>
+  `;
+}
+
+async function handleLogoUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('حجم الصورة كبير جداً (الحد الأقصى 2 ميجابايت)', 'error');
+    return;
+  }
+  try {
+    const base64 = await fileToBase64(file);
+    appData.settings.logo = base64;
+    saveData();
+    showToast('تم رفع اللوجو بنجاح');
+    renderSettings();
+  } catch (e) {
+    showToast('خطأ في رفع اللوجو', 'error');
+  }
+}
+
+function removeLogo() {
+  appData.settings.logo = null;
+  saveData();
+  showToast('تم إزالة اللوجو');
+  renderSettings();
+}
+
+function saveSettings() {
+  appData.settings.siteName = document.getElementById('settingSiteNameAr').value;
+  appData.settings.siteNameEn = document.getElementById('settingSiteNameEn').value;
+  appData.settings.defaultTheme = document.getElementById('settingTheme').checked ? 'dark' : 'light';
+  saveData();
+  showToast('تم حفظ الإعدادات بنجاح');
+}
+
+// ==================== PRODUCTS ====================
+let productSearchTerm = '';
+let productCategoryFilter = '';
+
+function renderProducts() {
+  const d = appData;
+  let filtered = d.products;
+
+  if (productSearchTerm) {
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase()));
+  }
+  if (productCategoryFilter) {
+    filtered = filtered.filter(p => p.category === productCategoryFilter);
+  }
+
+  document.getElementById('page-products').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">إدارة المنتجات</h1>
+        <p style="color:var(--text-muted);font-size:14px;">${d.products.length} منتج</p>
+      </div>
+      <button class="btn-gold" onclick="openProductModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة منتج
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;position:relative;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="admin-input" placeholder="بحث في المنتجات..." style="padding-right:36px;" value="${productSearchTerm}" oninput="productSearchTerm=this.value;renderProducts()">
+      </div>
+      <select class="admin-select" style="width:auto;min-width:160px;" onchange="productCategoryFilter=this.value;renderProducts()">
+        <option value="">كل المجموعات</option>
+        ${d.categories.map(c => `<option value="${c.id}" ${productCategoryFilter === c.id ? 'selected' : ''}>${c.titleAr}</option>`).join('')}
+      </select>
+    </div>
+
+    <!-- Products Table -->
+    <div class="admin-card" style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="border-radius:0 8px 0 0;">الصورة</th>
+            <th>المنتج</th>
+            <th>المجموعة</th>
+            <th>السعر</th>
+            <th>السعر الأصلي</th>
+            <th style="border-radius:8px 0 0 0;">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.length === 0 ? `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">لا توجد منتجات</td></tr>` : filtered.map(p => {
+            const cat = d.categories.find(c => c.id === p.category);
+            const discount = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+            return `
+              <tr>
+                <td data-label="الصورة"><img src="${p.image}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" onerror="this.style.background='var(--bg-tertiary)'"></td>
+                <td data-label="المنتج" style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</td>
+                <td data-label="المجموعة"><span class="badge badge-gold">${cat ? cat.titleAr : p.category}</span></td>
+                <td data-label="السعر" style="font-weight:700;color:var(--gold);">${p.price} ج.م</td>
+                <td data-label="السعر الأصلي">${p.originalPrice ? `<span style="text-decoration:line-through;color:var(--text-muted);">${p.originalPrice} ج.م</span> <span class="badge badge-green" style="font-size:11px;">-${discount}%</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
+                <td data-label="إجراءات">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn-icon" onclick='openProductModal(${JSON.stringify(p).replace(/'/g,"&#39;")})' title="تعديل">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn-icon danger" onclick="deleteProduct('${p.id}')" title="حذف">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function openProductModal(product) {
+  const d = appData;
+  const isEdit = !!product;
+  const p = product || { name: '', price: '', originalPrice: '', image: '', category: d.categories[0]?.id || '' };
+
+  showModal(`
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:24px;">${isEdit ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">اسم المنتج</label>
+        <input type="text" id="prodName" class="admin-input" value="${p.name}" placeholder="اسم المنتج">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">المجموعة</label>
+        <select id="prodCategory" class="admin-select">
+          ${d.categories.map(c => `<option value="${c.id}" ${p.category === c.id ? 'selected' : ''}>${c.titleAr}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">السعر (ج.م)</label>
+          <input type="number" id="prodPrice" class="admin-input" value="${p.price}" placeholder="السعر" min="0">
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">السعر الأصلي (اختياري)</label>
+          <input type="number" id="prodOrigPrice" class="admin-input" value="${p.originalPrice || ''}" placeholder="السعر قبل الخصم" min="0">
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">رابط الصورة (URL)</label>
+        <input type="text" id="prodImageUrl" class="admin-input" value="${p.image}" placeholder="https://..." dir="ltr" oninput="document.getElementById('prodImagePreview').src=this.value">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">أو رفع صورة</label>
+        <div class="file-input-wrapper">
+          <button class="btn-outline" style="pointer-events:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            اختر صورة
+          </button>
+          <input type="file" accept="image/*" onchange="handleProductImageUpload(this)">
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">الحد الأقصى: 2 ميجابايت</p>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">معاينة الصورة</label>
+        <img id="prodImagePreview" src="${p.image || ''}" alt="" style="max-width:120px;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg-tertiary);${p.image ? '' : 'display:none;'}" onerror="this.style.display='none'">
+        <span id="prodNoImage" style="color:var(--text-muted);font-size:13px;${p.image ? 'display:none;' : ''}">لا توجد صورة</span>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-start;margin-top:8px;">
+        <button class="btn-gold" onclick="saveProduct('${p.id || ''}', ${isEdit})">${isEdit ? 'حفظ التعديلات' : 'إضافة المنتج'}</button>
+        <button class="btn-outline" onclick="closeModal()">إلغاء</button>
+      </div>
+    </div>
+  `);
+}
+
+async function handleProductImageUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('حجم الصورة كبير جداً', 'error');
+    return;
+  }
+  try {
+    const base64 = await fileToBase64(file);
+    document.getElementById('prodImageUrl').value = base64;
+    const preview = document.getElementById('prodImagePreview');
+    preview.src = base64;
+    preview.style.display = 'block';
+    document.getElementById('prodNoImage').style.display = 'none';
+  } catch (e) {
+    showToast('خطأ في رفع الصورة', 'error');
+  }
+}
+
+function saveProduct(existingId, isEdit) {
+  const name = document.getElementById('prodName').value.trim();
+  const category = document.getElementById('prodCategory').value;
+  const price = parseInt(document.getElementById('prodPrice').value);
+  const origPrice = document.getElementById('prodOrigPrice').value ? parseInt(document.getElementById('prodOrigPrice').value) : null;
+  const image = document.getElementById('prodImageUrl').value.trim();
+
+  if (!name) { showToast('يرجى إدخال اسم المنتج', 'error'); return; }
+  if (!price || price <= 0) { showToast('يرجى إدخال سعر صحيح', 'error'); return; }
+
+  if (isEdit) {
+    const idx = appData.products.findIndex(p => p.id === existingId);
+    if (idx !== -1) {
+      appData.products[idx] = { ...appData.products[idx], name, category, price, image };
+      if (origPrice) appData.products[idx].originalPrice = origPrice;
+      else delete appData.products[idx].originalPrice;
+    }
+    showToast('تم تعديل المنتج بنجاح');
+  } else {
+    appData.products.push({ id: generateId(), name, category, price, originalPrice: origPrice, image });
+    showToast('تم إضافة المنتج بنجاح');
+  }
+  saveData();
+  closeModal();
+  renderProducts();
+}
+
+function deleteProduct(id) {
+  const product = appData.products.find(p => p.id === id);
+  showConfirmModal(`هل أنت متأكد من حذف المنتج "${product ? product.name : ''}"؟`, () => {
+    appData.products = appData.products.filter(p => p.id !== id);
+    saveData();
+    showToast('تم حذف المنتج');
+    renderProducts();
+  });
+}
+
+// ==================== CATEGORIES ====================
+function renderCategories() {
+  const d = appData;
+
+  document.getElementById('page-categories').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">إدارة المجموعات</h1>
+        <p style="color:var(--text-muted);font-size:14px;">${d.categories.length} مجموعة</p>
+      </div>
+      <button class="btn-gold" onclick="openCategoryModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة مجموعة
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+      ${d.categories.map(c => {
+        const productCount = d.products.filter(p => p.category === c.id).length;
+        return `
+          <div class="admin-card" style="overflow:hidden;">
+            <div style="height:120px;overflow:hidden;position:relative;">
+              <img src="${c.image}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.background='var(--bg-tertiary)'">
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,var(--bg-secondary),transparent);"></div>
+            </div>
+            <div style="padding:16px;">
+              <h3 style="font-size:16px;font-weight:700;margin-bottom:2px;">${c.titleAr}</h3>
+              <p style="color:var(--text-muted);font-size:12px;margin-bottom:4px;">${c.titleEn}</p>
+              <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.descriptionAr || ''}</p>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span class="badge badge-gold">${productCount} منتج</span>
+                <div style="display:flex;gap:4px;">
+                  <button class="btn-icon" onclick='openCategoryModal(${JSON.stringify(c).replace(/'/g,"&#39;")})' title="تعديل">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="btn-icon danger" onclick="deleteCategory('${c.id}')" title="حذف">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openCategoryModal(category) {
+  const isEdit = !!category;
+  const c = category || { titleAr: '', titleEn: '', descriptionAr: '', image: '', id: '' };
+
+  showModal(`
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:24px;">${isEdit ? 'تعديل المجموعة' : 'إضافة مجموعة جديدة'}</h3>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">الاسم (عربي)</label>
+        <input type="text" id="catTitleAr" class="admin-input" value="${c.titleAr}" placeholder="اسم المجموعة بالعربي">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">الاسم (إنجليزي)</label>
+        <input type="text" id="catTitleEn" class="admin-input" value="${c.titleEn}" placeholder="CATEGORY NAME" dir="ltr" style="text-transform:uppercase;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">الوصف (عربي)</label>
+        <textarea id="catDescAr" class="admin-textarea" placeholder="وصف المجموعة">${c.descriptionAr || ''}</textarea>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">المعرّف (ID)</label>
+        <input type="text" id="catId" class="admin-input" value="${c.id}" placeholder="auto-generated" dir="ltr" ${isEdit ? 'readonly style="opacity:0.5;cursor:not-allowed;"' : ''}>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">يتم توليده تلقائياً من الاسم الإنجليزي إذا تركته فارغاً</p>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">رابط الصورة (URL)</label>
+        <input type="text" id="catImageUrl" class="admin-input" value="${c.image}" placeholder="https://..." dir="ltr" oninput="document.getElementById('catImagePreview').src=this.value;document.getElementById('catImagePreview').style.display='block';document.getElementById('catNoImage').style.display='none'">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">أو رفع صورة</label>
+        <div class="file-input-wrapper">
+          <button class="btn-outline" style="pointer-events:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            اختر صورة
+          </button>
+          <input type="file" accept="image/*" onchange="handleCategoryImageUpload(this)">
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">معاينة الصورة</label>
+        <img id="catImagePreview" src="${c.image || ''}" alt="" style="max-width:150px;max-height:100px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg-tertiary);${c.image ? '' : 'display:none;'}" onerror="this.style.display='none'">
+        <span id="catNoImage" style="color:var(--text-muted);font-size:13px;${c.image ? 'display:none;' : ''}">لا توجد صورة</span>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-start;margin-top:8px;">
+        <button class="btn-gold" onclick="saveCategory('${c.id || ''}', ${isEdit})">${isEdit ? 'حفظ التعديلات' : 'إضافة المجموعة'}</button>
+        <button class="btn-outline" onclick="closeModal()">إلغاء</button>
+      </div>
+    </div>
+  `);
+}
+
+async function handleCategoryImageUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('حجم الصورة كبير جداً', 'error');
+    return;
+  }
+  try {
+    const base64 = await fileToBase64(file);
+    document.getElementById('catImageUrl').value = base64;
+    const preview = document.getElementById('catImagePreview');
+    preview.src = base64;
+    preview.style.display = 'block';
+    document.getElementById('catNoImage').style.display = 'none';
+  } catch (e) {
+    showToast('خطأ في رفع الصورة', 'error');
+  }
+}
+
+function saveCategory(existingId, isEdit) {
+  const titleAr = document.getElementById('catTitleAr').value.trim();
+  const titleEn = document.getElementById('catTitleEn').value.trim().toUpperCase();
+  const descriptionAr = document.getElementById('catDescAr').value.trim();
+  let catId = document.getElementById('catId').value.trim().toLowerCase().replace(/\s+/g, '-');
+  const image = document.getElementById('catImageUrl').value.trim();
+
+  if (!titleAr) { showToast('يرجى إدخال الاسم بالعربي', 'error'); return; }
+  if (!titleEn) { showToast('يرجى إدخال الاسم بالإنجليزي', 'error'); return; }
+  if (!isEdit && !catId) { catId = titleEn.toLowerCase().replace(/\s+/g, '-'); }
+  if (!catId) { showToast('يرجى إدخال المعرّف', 'error'); return; }
+
+  if (isEdit) {
+    const idx = appData.categories.findIndex(c => c.id === existingId);
+    if (idx !== -1) {
+      appData.categories[idx] = { ...appData.categories[idx], titleAr, titleEn, descriptionAr, image };
+    }
+    showToast('تم تعديل المجموعة بنجاح');
+  } else {
+    if (appData.categories.find(c => c.id === catId)) { showToast('هذا المعرّف موجود بالفعل', 'error'); return; }
+    appData.categories.push({ id: catId, titleAr, titleEn, descriptionAr, image });
+    showToast('تم إضافة المجموعة بنجاح');
+  }
+  saveData();
+  closeModal();
+  renderCategories();
+}
+
+function deleteCategory(id) {
+  const cat = appData.categories.find(c => c.id === id);
+  const productCount = appData.products.filter(p => p.category === id).length;
+  showConfirmModal(`هل أنت متأكد من حذف مجموعة "${cat ? cat.titleAr : ''}"؟${productCount > 0 ? ` (تحتوي على ${productCount} منتج)` : ''}`, () => {
+    appData.categories = appData.categories.filter(c => c.id !== id);
+    saveData();
+    showToast('تم حذف المجموعة');
+    renderCategories();
+  });
+}
+
+// ==================== CONTACTS ====================
+function renderContacts() {
+  const d = appData;
+
+  function getContactIcon(type) {
+    const icons = {
+      whatsapp: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>',
+      instagram: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+      tiktok: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.46V13a8.28 8.28 0 005.58 2.17v-3.44a4.85 4.85 0 01-3-.59v-.01a4.83 4.83 0 003-4.44z"/></svg>',
+      phone: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>',
+      email: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+      facebook: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+      other: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    };
+    return icons[type] || icons.other;
+  }
+
+  document.getElementById('page-contacts').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">إدارة وسائل التواصل</h1>
+        <p style="color:var(--text-muted);font-size:14px;">${d.contacts.length} وسيلة تواصل</p>
+      </div>
+      <button class="btn-gold" onclick="openContactModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة وسيلة
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+      ${d.contacts.map(c => `
+        <div class="admin-card" style="padding:20px;display:flex;align-items:center;gap:16px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:${c.color || 'var(--bg-tertiary)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${c.color === '#ffffff' || c.color === '#FFFFFF' || c.color === '#fff' ? 'var(--bg-primary)' : c.color === '#000000' ? 'var(--text-primary)' : c.color};">
+            ${getContactIcon(c.type)}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:2px;">${c.platform}</h3>
+            <p style="color:var(--text-secondary);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.handle}</p>
+            <a href="${c.link}" target="_blank" style="font-size:11px;color:var(--gold);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">${c.link}</a>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button class="btn-icon" onclick='openContactModal(${JSON.stringify(c).replace(/'/g,"&#39;")})' title="تعديل">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon danger" onclick="deleteContact('${c.id}')" title="حذف">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openContactModal(contact) {
+  const isEdit = !!contact;
+  const c = contact || { platform: '', handle: '', link: '', color: '#e2b04a', type: 'other', id: '' };
+
+  showModal(`
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:24px;">${isEdit ? 'تعديل وسيلة التواصل' : 'إضافة وسيلة تواصل'}</h3>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">اسم المنصة</label>
+        <input type="text" id="contactPlatform" class="admin-input" value="${c.platform}" placeholder="واتساب، انستجرام، تيك توك...">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">الحساب / الرقم</label>
+        <input type="text" id="contactHandle" class="admin-input" value="${c.handle}" placeholder="@username أو رقم الهاتف">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">رابط التواصل</label>
+        <input type="text" id="contactLink" class="admin-input" value="${c.link}" placeholder="https://..." dir="ltr">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">النوع</label>
+        <select id="contactType" class="admin-select">
+          <option value="whatsapp" ${c.type === 'whatsapp' ? 'selected' : ''}>واتساب</option>
+          <option value="instagram" ${c.type === 'instagram' ? 'selected' : ''}>انستجرام</option>
+          <option value="tiktok" ${c.type === 'tiktok' ? 'selected' : ''}>تيك توك</option>
+          <option value="facebook" ${c.type === 'facebook' ? 'selected' : ''}>فيسبوك</option>
+          <option value="phone" ${c.type === 'phone' ? 'selected' : ''}>هاتف</option>
+          <option value="email" ${c.type === 'email' ? 'selected' : ''}>بريد إلكتروني</option>
+          <option value="other" ${c.type === 'other' ? 'selected' : ''}>أخرى</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">اللون</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="color" id="contactColor" value="${c.color || '#e2b04a'}">
+          <span id="contactColorValue" style="color:var(--text-secondary);font-size:13px;font-family:monospace;">${c.color || '#e2b04a'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-start;margin-top:8px;">
+        <button class="btn-gold" onclick="saveContact('${c.id || ''}', ${isEdit})">${isEdit ? 'حفظ التعديلات' : 'إضافة'}</button>
+        <button class="btn-outline" onclick="closeModal()">إلغاء</button>
+      </div>
+    </div>
+  `);
+  document.getElementById('contactColor').addEventListener('input', function() {
+    document.getElementById('contactColorValue').textContent = this.value;
+  });
+}
+
+function saveContact(existingId, isEdit) {
+  const platform = document.getElementById('contactPlatform').value.trim();
+  const handle = document.getElementById('contactHandle').value.trim();
+  const link = document.getElementById('contactLink').value.trim();
+  const type = document.getElementById('contactType').value;
+  const color = document.getElementById('contactColor').value;
+
+  if (!platform) { showToast('يرجى إدخال اسم المنصة', 'error'); return; }
+
+  if (isEdit) {
+    const idx = appData.contacts.findIndex(c => c.id === existingId);
+    if (idx !== -1) {
+      appData.contacts[idx] = { ...appData.contacts[idx], platform, handle, link, type, color };
+    }
+    showToast('تم تعديل وسيلة التواصل بنجاح');
+  } else {
+    appData.contacts.push({ id: generateId(), platform, handle, link, type, color });
+    showToast('تم إضافة وسيلة التواصل بنجاح');
+  }
+  saveData();
+  closeModal();
+  renderContacts();
+}
+
+function deleteContact(id) {
+  const contact = appData.contacts.find(c => c.id === id);
+  showConfirmModal(`هل أنت متأكد من حذف "${contact ? contact.platform : ''}"؟`, () => {
+    appData.contacts = appData.contacts.filter(c => c.id !== id);
+    saveData();
+    showToast('تم حذف وسيلة التواصل');
+    renderContacts();
+  });
+}
+
+// ==================== ANNOUNCEMENTS ====================
+function renderAnnouncements() {
+  const d = appData;
+  const announcements = d.announcements || [];
+
+  document.getElementById('page-announcements').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">إدارة الإعلانات</h1>
+        <p style="color:var(--text-muted);font-size:14px;">${announcements.length} إعلان</p>
+      </div>
+      <button class="btn-gold" onclick="openAnnouncementModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة إعلان
+      </button>
+    </div>
+
+    ${announcements.length === 0 ? `
+      <div class="admin-card" style="padding:60px;text-align:center;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 16px;display:block;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <p style="color:var(--text-muted);font-size:15px;">لا توجد إعلانات حالياً</p>
+      </div>
+    ` : `
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        ${announcements.map((a, idx) => `
+          <div class="admin-card" style="padding:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:200px;">
+                <p style="font-size:15px;font-weight:500;margin-bottom:6px;">${a.text}</p>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span class="badge ${a.active ? 'badge-green' : 'badge-gray'}">${a.active ? 'نشط' : 'غير نشط'}</span>
+                  <span style="color:var(--text-muted);font-size:12px;">${a.createdAt ? new Date(a.createdAt).toLocaleDateString('ar-EG') : ''}</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <label class="toggle-switch" title="تفعيل/تعطيل">
+                  <input type="checkbox" ${a.active ? 'checked' : ''} onchange="toggleAnnouncement('${a.id}')">
+                  <span class="toggle-slider"></span>
+                </label>
+                <button class="btn-icon" onclick='openAnnouncementModal(${JSON.stringify(a).replace(/'/g,"&#39;")})' title="تعديل">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon danger" onclick="deleteAnnouncement('${a.id}')" title="حذف">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+function openAnnouncementModal(announcement) {
+  const isEdit = !!announcement;
+  const a = announcement || { text: '', active: true, id: '', createdAt: '' };
+
+  showModal(`
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:24px;">${isEdit ? 'تعديل الإعلان' : 'إضافة إعلان جديد'}</h3>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">نص الإعلان</label>
+        <textarea id="annText" class="admin-textarea" rows="4" placeholder="نص الإعلان هنا...">${a.text}</textarea>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">الحالة</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:14px;color:var(--text-secondary);">غير نشط</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="annActive" ${a.active ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:14px;color:var(--text-secondary);">نشط</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-start;margin-top:8px;">
+        <button class="btn-gold" onclick="saveAnnouncement('${a.id || ''}', ${isEdit})">${isEdit ? 'حفظ التعديلات' : 'إضافة الإعلان'}</button>
+        <button class="btn-outline" onclick="closeModal()">إلغاء</button>
+      </div>
+    </div>
+  `);
+}
+
+function saveAnnouncement(existingId, isEdit) {
+  const text = document.getElementById('annText').value.trim();
+  const active = document.getElementById('annActive').checked;
+
+  if (!text) { showToast('يرجى إدخال نص الإعلان', 'error'); return; }
+
+  if (isEdit) {
+    const idx = appData.announcements.findIndex(a => a.id === existingId);
+    if (idx !== -1) {
+      appData.announcements[idx] = { ...appData.announcements[idx], text, active };
+    }
+    showToast('تم تعديل الإعلان بنجاح');
+  } else {
+    appData.announcements.push({ id: generateId(), text, active, createdAt: new Date().toISOString() });
+    showToast('تم إضافة الإعلان بنجاح');
+  }
+  saveData();
+  closeModal();
+  renderAnnouncements();
+}
+
+function toggleAnnouncement(id) {
+  const idx = appData.announcements.findIndex(a => a.id === id);
+  if (idx !== -1) {
+    appData.announcements[idx].active = !appData.announcements[idx].active;
+    saveData();
+    showToast(appData.announcements[idx].active ? 'تم تفعيل الإعلان' : 'تم تعطيل الإعلان');
+    renderAnnouncements();
+  }
+}
+
+function deleteAnnouncement(id) {
+  showConfirmModal('هل أنت متأكد من حذف هذا الإعلان؟', () => {
+    appData.announcements = appData.announcements.filter(a => a.id !== id);
+    saveData();
+    showToast('تم حذف الإعلان');
+    renderAnnouncements();
+  });
+}
+
+// ==================== PROMO BANNER ====================
+function renderPromo() {
+  const d = appData;
+  const banner = d.promoBanner || { text: '', active: false };
+
+  document.getElementById('page-promo').innerHTML = `
+    <div style="margin-bottom:28px;">
+      <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">شريط العروض</h1>
+      <p style="color:var(--text-muted);font-size:14px;">إدارة شريط العروض المتحرك</p>
+    </div>
+
+    <div class="admin-card" style="padding:28px;max-width:640px;">
+      <!-- Active Toggle -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:12px;">حالة الشريط</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:14px;color:${!banner.active ? 'var(--text-primary)' : 'var(--text-muted)'}">معطل</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="promoActive" ${banner.active ? 'checked' : ''} onchange="updatePromoPreview()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:14px;color:${banner.active ? 'var(--text-primary)' : 'var(--text-muted)'}">مفعّل</span>
+        </div>
+      </div>
+
+      <!-- Banner Text -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">نص الشريط</label>
+        <textarea id="promoText" class="admin-textarea" rows="3" placeholder="نص العرض أو التخفيض..." oninput="updatePromoPreview()">${banner.text || ''}</textarea>
+      </div>
+
+      <!-- Preview -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14px;font-weight:600;margin-bottom:12px;">معاينة</label>
+        <div id="promoPreviewContainer" style="border-radius:8px;overflow:hidden;${!banner.active ? 'opacity:0.4;pointer-events:none;' : ''}">
+          <div class="promo-preview">
+            <div class="promo-preview-text" style="padding:0 40px;font-size:15px;">
+              ${banner.text || 'نص العرض هنا...'} &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; ${banner.text || 'نص العرض هنا...'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button class="btn-gold" onclick="savePromo()" style="padding:12px 32px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        حفظ التغييرات
+      </button>
+    </div>
+  `;
+}
+
+function updatePromoPreview() {
+  const text = document.getElementById('promoText').value;
+  const active = document.getElementById('promoActive').checked;
+  const previewText = document.querySelector('.promo-preview-text');
+  const container = document.getElementById('promoPreviewContainer');
+
+  if (previewText) {
+    previewText.innerHTML = (text || 'نص العرض هنا...') + ' &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; ' + (text || 'نص العرض هنا...');
+  }
+  if (container) {
+    container.style.opacity = active ? '1' : '0.4';
+    container.style.pointerEvents = active ? 'auto' : 'none';
+  }
+}
+
+function savePromo() {
+  const text = document.getElementById('promoText').value.trim();
+  const active = document.getElementById('promoActive').checked;
+
+  appData.promoBanner = { text, active };
+  saveData();
+  showToast('تم حفظ شريط العروض بنجاح');
+}
+
+// ==================== INIT ====================
+function showAdminPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  loadData();
+  navigateTo('dashboard');
+  handleResponsive();
+}
+
+function handleResponsive() {
+  const mainContent = document.getElementById('mainContent');
+  const topBar = document.getElementById('topBar');
+  const sidebar = document.getElementById('sidebar');
+
+  function check() {
+    if (window.innerWidth <= 768) {
+      mainContent.style.marginRight = '0';
+      topBar.style.display = 'block';
+      sidebar.classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    } else {
+      mainContent.style.marginRight = '260px';
+      topBar.style.display = 'none';
+      sidebar.classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+  }
+  check();
+  window.addEventListener('resize', check);
+}
+
+// Boot
+(function init() {
+  loadData();
+  if (checkAuth()) {
+    showAdminPanel();
+  }
+})();
+</script>
+</body>
+</html>
