@@ -120,43 +120,119 @@
       transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Light Mode */
+    /* ========== COMPREHENSIVE LIGHT MODE ========== */
     [data-theme="light"] {
-      --bg-primary: #f8f8f8;
+      --bg-primary: #f5f5f5;
       --bg-card: #ffffff;
-      --bg-tertiary: #f0f0f0;
+      --bg-tertiary: #ebebeb;
       --text-primary: #1a1a1a;
-      --text-secondary: rgba(0,0,0,0.6);
-      --text-muted: rgba(0,0,0,0.35);
-      --border-color: rgba(0,0,0,0.08);
+      --text-secondary: #444;
+      --text-muted: #888;
+      --border-color: rgba(0,0,0,0.1);
     }
 
-    [data-theme="light"] body { background: #f8f8f8; color: #1a1a1a; }
-    [data-theme="light"] .bg-dark, [data-theme="light"] .bg-card, [data-theme="light"] .bg-[#0a0a0a] { background: #f8f8f8 !important; }
-    [data-theme="light"] .bg-card, [data-theme="light"] .bg-[#111] { background: #ffffff !important; }
-    [data-theme="light"] .bg-[#111111] { background: #ffffff !important; }
-    [data-theme="light"] .bg-[#060606] { background: #f0f0f0 !important; }
+    /* Base */
+    [data-theme="light"] body { background: #f5f5f5; color: #1a1a1a; }
+    [data-theme="light"] ::selection { background: rgba(226, 176, 74, 0.3); color: #1a1a1a; }
+
+    /* Scrollbar */
+    [data-theme="light"] ::-webkit-scrollbar-track { background: #ebebeb; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+
+    /* Navbar scrolled */
+    [data-theme="light"] .nav-scrolled { background: rgba(245, 245, 245, 0.92) !important; }
+
+    /* Hero - override inline style */
+    [data-theme="light"] #hero {
+      background: linear-gradient(135deg, #fdf6e3 0%, #f5f0e0 30%, #f5f5f5 60%, #fff 100%) !important;
+    }
+    [data-theme="light"] #hero .line-glow { opacity: 0.12; }
+    [data-theme="light"] #hero .border-white\/30 { border-color: rgba(0,0,0,0.15) !important; }
+    [data-theme="light"] #hero .bg-gold { background: #c49a1e; }
+
+    /* Backgrounds */
+    [data-theme="light"] .bg-dark,
+    [data-theme="light"] .bg-card { background: #ffffff !important; }
+
+    /* Footer - override inline style */
+    [data-theme="light"] footer { background: #ebebeb !important; border-color: rgba(0,0,0,0.1) !important; }
+
+    /* Product cards */
+    [data-theme="light"] .product-card { border-color: rgba(0,0,0,0.08) !important; background: #ffffff !important; }
+    [data-theme="light"] .product-card:hover { border-color: rgba(0,0,0,0.18) !important; }
+
+    /* Card glow */
+    [data-theme="light"] .card-glow:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+
+    /* === TEXT COLORS === */
     [data-theme="light"] .text-white { color: #1a1a1a !important; }
-    [data-theme="light"] .text-white\/50, [data-theme="light"] .text-white\/60, [data-theme="light"] .text-white\/70, [data-theme="light"] .text-white\/80 { color: rgba(0,0,0,0.6) !important; }
-    [data-theme="light"] .text-white\/40 { color: rgba(0,0,0,0.35) !important; }
-    [data-theme="light"] .text-white\/30 { color: rgba(0,0,0,0.25) !important; }
-    [data-theme="light"] .text-white\/20 { color: rgba(0,0,0,0.15) !important; }
-    [data-theme="light"] .border-white\/5, [data-theme="light"] .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
-    [data-theme="light"] .bg-white\/5 { background: rgba(0,0,0,0.04) !important; }
-    [data-theme="light"] .bg-white\/10 { background: rgba(0,0,0,0.06) !important; }
-    [data-theme="light"] .placeholder-white\/30::placeholder { color: rgba(0,0,0,0.3) !important; }
-    [data-theme="light"] .bg-black\/50, [data-theme="light"] .bg-black\/60 { background: rgba(0,0,0,0.5) !important; }
+    [data-theme="light"] .text-white\/80 { color: #2d2d2d !important; }
+    [data-theme="light"] .text-white\/70 { color: #404040 !important; }
+    [data-theme="light"] .text-white\/60 { color: #505050 !important; }
+    [data-theme="light"] .text-white\/50 { color: #666 !important; }
+    [data-theme="light"] .text-white\/40 { color: #808080 !important; }
+    [data-theme="light"] .text-white\/30 { color: #999 !important; }
+    [data-theme="light"] .text-white\/20 { color: #aaa !important; }
 
-    [data-theme="light"] ::-webkit-scrollbar-track { background: #f0f0f0; }
-    [data-theme="light"] ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    /* Border overrides */
+    [data-theme="light"] .border-white\/5 { border-color: rgba(0,0,0,0.06) !important; }
+    [data-theme="light"] .border-white\/10 { border-color: rgba(0,0,0,0.1) !important; }
 
-    [data-theme="light"] .nav-scrolled {
-      background: rgba(248, 248, 248, 0.85) !important;
+    /* Backgrounds for subtle elements */
+    [data-theme="light"] .bg-white\/5 { background: rgba(0,0,0,0.03) !important; }
+    [data-theme="light"] .bg-white\/10 { background: rgba(0,0,0,0.05) !important; }
+
+    /* Dark overlays stay dark */
+    [data-theme="light"] .bg-black\/50,
+    [data-theme="light"] .bg-black\/60 { background: rgba(0,0,0,0.6) !important; }
+
+    /* Placeholder */
+    [data-theme="light"] .placeholder-white\/30::placeholder { color: #999 !important; }
+
+    /* Gold text - darker for light background contrast */
+    [data-theme="light"] .gold-text {
+      background: linear-gradient(135deg, #8b6914 0%, #c49a1e 40%, #daa520 60%, #8b6914 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
     }
 
-    [data-theme="light"] .product-card { border-color: rgba(0,0,0,0.08) !important; }
-    [data-theme="light"] .product-card:hover { border-color: rgba(0,0,0,0.15) !important; }
+    /* Hover states */
+    [data-theme="light"] .hover\:bg-white\/10:hover { background: rgba(0,0,0,0.05) !important; }
+    [data-theme="light"] .hover\:text-white:hover { color: #1a1a1a !important; }
+
+    /* Contact card subtle bg */
+    [data-theme="light"] .bg-green-600\/10 { background: rgba(37, 211, 102, 0.08) !important; }
+    [data-theme="light"] .bg-pink-600\/10 { background: rgba(225, 48, 108, 0.08) !important; }
+    [data-theme="light"] .bg-blue-600\/10 { background: rgba(59, 130, 246, 0.08) !important; }
+    [data-theme="light"] .bg-yellow-600\/10 { background: rgba(234, 179, 8, 0.08) !important; }
+
+    /* Modal */
+    [data-theme="light"] .modal-overlay { background: rgba(0, 0, 0, 0.6); }
+    [data-theme="light"] #productModal .bg-card { background: #ffffff !important; }
+
+    /* === KEEP WHITE TEXT ON DARK IMAGE OVERLAYS === */
+    /* Category cards */
+    [data-theme="light"] .category-card .text-white,
+    [data-theme="light"] .category-card .text-white\/50,
+    [data-theme="light"] .category-card .text-white\/60,
+    [data-theme="light"] .category-card .text-white\/70,
+    [data-theme="light"] .category-card .text-white\/80 { color: #ffffff !important; }
+
+    /* Custom section image cards */
+    [data-theme="light"] #customSection .text-white,
+    [data-theme="light"] #customSection .text-white\/60 { color: #ffffff !important; }
+
+    /* Product hover overlay */
+    [data-theme="light"] .product-overlay .text-white { color: #ffffff !important; }
+
+    /* Modal close button (on dark overlay) */
+    [data-theme="light"] .bg-black\/60 .text-white { color: #ffffff !important; }
+
+    /* Announcement banner - keep dark text (amber bg) */
+    [data-theme="light"] .announcement-banner { color: #1a1a1a !important; }
+    [data-theme="light"] .announcement-banner .text-dark\/70 { color: rgba(0,0,0,0.6) !important; }
 
     /* Announcement banner animation */
     @keyframes slideDown {
@@ -203,6 +279,12 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
               </svg>
             </button>
+            <!-- Admin Button -->
+            <button onclick="openAdmin()" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" title="لوحة التحكم">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
             <!-- WhatsApp Button -->
             <a id="navWhatsAppBtn" href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
                class="hidden sm:flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -225,6 +307,12 @@
           <a href="#categories" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">المجموعات</a>
           <a href="#products" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">المنتجات</a>
           <a href="#contact" class="block text-white/80 hover:text-gold py-2 transition-colors" onclick="closeMenu()">تواصل معنا</a>
+          <button onclick="openAdmin(); closeMenu();" class="flex items-center gap-2 text-white/80 hover:text-gold py-2 transition-colors w-full text-right">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            لوحة التحكم
+          </button>
           <a id="mobileWhatsAppBtn" href="https://api.whatsapp.com/send/?phone=201055190003" target="_blank"
              class="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-medium mt-2">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -310,7 +398,7 @@
     </section>
 
     <!-- CUSTOM SECTION -->
-    <section class="py-12 sm:py-16 lg:py-20">
+    <section id="customSection" class="py-12 sm:py-16 lg:py-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <!-- Custom Frame -->
@@ -1118,6 +1206,12 @@
       const waLink = getWhatsAppLink();
       const msg = encodeURIComponent("طلب موديل خاص:\n" + text);
       window.open(waLink + "&text=" + msg, '_blank');
+    }
+
+    // ============ ADMIN ACCESS ============
+    function openAdmin() {
+      window.location.hash = '#admin';
+      window.location.reload();
     }
 
     // ============ INIT ============
