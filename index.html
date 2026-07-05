@@ -245,6 +245,8 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-dark">
+  <!-- ========== MAIN SITE ========== -->
+  <div id="mainSite">
   <div id="app" class="flex flex-col min-h-screen">
 
     <!-- ANNOUNCEMENTS CONTAINER -->
@@ -584,6 +586,290 @@
      class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-green-600 hover:bg-green-700 hover:scale-110 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 transition-all">
     <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
   </a>
+  </div><!-- end #mainSite -->
+
+  <style>
+/* ===== Admin Panel Styles ===== */
+#adminPanel { font-family: 'Cairo', sans-serif; direction: rtl; min-height: 100vh; background: #0a0a0a; color: #fff; }
+#adminPanel * { box-sizing: border-box; }
+#adminPanel ::-webkit-scrollbar { width: 6px; }
+#adminPanel ::-webkit-scrollbar-track { background: #1a1a1a; }
+#adminPanel ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+#adminPanel ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+#adminLogin { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%); }
+#adminLogin .login-card { background: #111; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 400px; text-align: center; }
+#adminLogin .lock-icon { width: 64px; height: 64px; margin: 0 auto 1.25rem; background: linear-gradient(135deg, #e2b04a, #c4952e); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(226,176,74,0.3); }
+#adminLogin .login-card h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; color: #fff; }
+#adminLogin .login-card p { font-size: 0.9rem; color: #999; margin-bottom: 1.5rem; }
+#adminLogin .login-card input { width: 100%; padding: 0.75rem 1rem; text-align: center; font-size: 1.25rem; letter-spacing: 0.5rem; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; outline: none; transition: border-color 0.2s; }
+#adminLogin .login-card input:focus { border-color: #e2b04a; }
+#adminLogin .login-btn { width: 100%; padding: 0.75rem; margin-top: 1rem; background: linear-gradient(135deg, #e2b04a, #c4952e); color: #000; font-weight: 700; font-size: 1rem; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; font-family: 'Cairo', sans-serif; }
+#adminLogin .login-btn:hover { opacity: 0.9; }
+#adminLogin .login-error { color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem; min-height: 1.25rem; }
+#adminLogin .back-link { display: inline-block; margin-top: 1.25rem; color: #e2b04a; font-size: 0.85rem; text-decoration: none; cursor: pointer; transition: opacity 0.2s; }
+#adminLogin .back-link:hover { opacity: 0.8; }
+
+#adminDashboard { display: none; min-height: 100vh; }
+#adminDashboard.active { display: flex; flex-direction: column; }
+
+.admin-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; background: #111; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 40; gap: 0.75rem; flex-wrap: wrap; }
+.admin-topbar .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+.admin-topbar .topbar-left { display: flex; align-items: center; gap: 0.5rem; }
+.admin-topbar .topbar-logo { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #e2b04a, #c4952e); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.admin-topbar .topbar-title { font-weight: 700; font-size: 1rem; white-space: nowrap; }
+.admin-topbar .topbar-tab { color: #999; font-size: 0.85rem; }
+.admin-topbar .hamburger-btn { display: none; background: none; border: none; color: #fff; cursor: pointer; padding: 0.5rem; }
+.admin-topbar .topbar-btn { padding: 0.4rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap; font-family: 'Cairo', sans-serif; }
+.admin-topbar .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #ccc; }
+.admin-topbar .btn-outline:hover { border-color: #e2b04a; color: #e2b04a; }
+.admin-topbar .btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+.admin-topbar .btn-danger:hover { background: rgba(239,68,68,0.25); }
+.admin-topbar .theme-toggle-btn { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.admin-topbar .theme-toggle-btn:hover { border-color: #e2b04a; color: #e2b04a; }
+
+.admin-body { display: flex; flex: 1; }
+.admin-sidebar { width: 240px; flex-shrink: 0; background: #0d0d0d; border-left: 1px solid rgba(255,255,255,0.06); padding: 1rem 0; overflow-y: auto; height: calc(100vh - 60px); position: sticky; top: 60px; transition: transform 0.3s ease; }
+.admin-sidebar .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #999; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; border-right: 3px solid transparent; text-decoration: none; }
+.admin-sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+.admin-sidebar .nav-item.active { color: #e2b04a; background: rgba(226,176,74,0.05); border-right-color: #e2b04a; }
+.admin-sidebar .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.admin-content { flex: 1; padding: 1.5rem; overflow-y: auto; min-width: 0; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card { background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; }
+.stat-card .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; }
+.stat-card .stat-value { font-size: 1.75rem; font-weight: 800; color: #fff; }
+.stat-card .stat-label { font-size: 0.85rem; color: #888; margin-top: 0.25rem; }
+.stat-card .stat-glow { position: absolute; top: -30px; left: -30px; width: 100px; height: 100px; border-radius: 50%; opacity: 0.08; }
+
+.daily-visits { background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.25rem; }
+.daily-visits h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #fff; }
+.visit-bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+.visit-bar-row .visit-day { font-size: 0.8rem; color: #888; width: 50px; text-align: left; flex-shrink: 0; }
+.visit-bar-row .visit-bar-bg { flex: 1; height: 28px; background: #1a1a1a; border-radius: 6px; overflow: hidden; }
+.visit-bar-row .visit-bar-fill { height: 100%; border-radius: 6px; min-width: 2px; background: linear-gradient(90deg, #e2b04a, #c4952e); transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-left: 0.5rem; }
+.visit-bar-row .visit-count { font-size: 0.75rem; color: #e2b04a; font-weight: 700; width: 40px; text-align: right; flex-shrink: 0; }
+
+.admin-form-group { margin-bottom: 1.25rem; }
+.admin-form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #ccc; margin-bottom: 0.4rem; }
+.admin-form-group input, .admin-form-group select, .admin-form-group textarea { width: 100%; padding: 0.65rem 0.85rem; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: 'Cairo', sans-serif; outline: none; transition: border-color 0.2s; }
+.admin-form-group input:focus, .admin-form-group select:focus, .admin-form-group textarea:focus { border-color: #e2b04a; }
+.admin-form-group textarea { resize: vertical; min-height: 80px; }
+.admin-form-group select { cursor: pointer; }
+.admin-form-group select option { background: #1a1a1a; color: #fff; }
+
+.admin-btn { padding: 0.6rem 1.25rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Cairo', sans-serif; display: inline-flex; align-items: center; gap: 0.4rem; }
+.admin-btn-primary { background: linear-gradient(135deg, #e2b04a, #c4952e); color: #000; }
+.admin-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.admin-btn-secondary { background: rgba(255,255,255,0.08); color: #ccc; }
+.admin-btn-secondary:hover { background: rgba(255,255,255,0.12); }
+.admin-btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+.admin-btn-danger:hover { background: rgba(239,68,68,0.25); }
+.admin-btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+.admin-btn-icon { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; border: none; transition: all 0.2s; background: rgba(255,255,255,0.05); color: #999; }
+.admin-btn-icon:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.admin-btn-icon.edit:hover { color: #e2b04a; background: rgba(226,176,74,0.1); }
+.admin-btn-icon.delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+.admin-list-item { background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; transition: border-color 0.2s; }
+.admin-list-item:hover { border-color: rgba(255,255,255,0.12); }
+.admin-list-item .item-info { flex: 1; min-width: 0; }
+.admin-list-item .item-info .item-name { font-weight: 600; font-size: 0.95rem; color: #fff; }
+.admin-list-item .item-info .item-detail { font-size: 0.8rem; color: #888; margin-top: 0.15rem; }
+
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.product-card-admin { background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+.product-card-admin:hover { border-color: rgba(255,255,255,0.12); }
+.product-card-admin .product-img { width: 100%; height: 160px; object-fit: cover; background: #1a1a1a; }
+.product-card-admin .product-body { padding: 1rem; }
+.product-card-admin .product-name { font-weight: 600; font-size: 0.95rem; color: #fff; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.product-card-admin .product-prices { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+.product-card-admin .product-price { font-weight: 800; color: #e2b04a; font-size: 1.1rem; }
+.product-card-admin .product-original { font-size: 0.8rem; color: #666; text-decoration: line-through; }
+.product-card-admin .product-discount { background: rgba(239,68,68,0.15); color: #ef4444; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
+.product-card-admin .product-category { font-size: 0.8rem; color: #888; margin-bottom: 0.75rem; }
+.product-card-admin .product-actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+
+.admin-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.admin-modal-overlay.active { display: flex; }
+.admin-modal { background: #111; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+.admin-modal h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; color: #fff; }
+.admin-modal .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-start; margin-top: 1.25rem; }
+
+.toggle-switch { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-switch .toggle-slider { position: absolute; inset: 0; cursor: pointer; background: #333; border-radius: 26px; transition: 0.3s; }
+.toggle-switch .toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background: #e2b04a; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+.logo-preview-area { width: 100px; height: 100px; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.75rem; background: #1a1a1a; }
+.logo-preview-area img { width: 100%; height: 100%; object-fit: contain; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+.section-header h2 { font-size: 1.2rem; font-weight: 700; color: #fff; }
+.section-header .filter-select { padding: 0.4rem 0.75rem; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 0.85rem; font-family: 'Cairo', sans-serif; outline: none; cursor: pointer; }
+.section-header .filter-select option { background: #1a1a1a; }
+
+.promo-preview { margin-top: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, #e2b04a, #c4952e); border-radius: 12px; text-align: center; color: #000; font-weight: 700; font-size: 1.1rem; }
+
+.admin-sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 44; }
+.admin-sidebar-overlay.active { display: block; }
+
+.admin-empty { text-align: center; padding: 3rem 1rem; color: #666; }
+.admin-empty svg { width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.3; }
+.admin-empty p { font-size: 0.95rem; }
+
+/* Admin Light Mode */
+[data-theme="light"] #adminPanel { background: #f5f5f5; color: #1a1a1a; }
+[data-theme="light"] #adminLogin { background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%); }
+[data-theme="light"] #adminLogin .login-card { background: #fff; border-color: #e0e0e0; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+[data-theme="light"] #adminLogin .login-card h2 { color: #1a1a1a; }
+[data-theme="light"] #adminLogin .login-card input { background: #f9f9f9; border-color: #ddd; color: #1a1a1a; }
+[data-theme="light"] #adminLogin .login-card input:focus { border-color: #c4952e; }
+[data-theme="light"] .admin-topbar { background: #fff; border-color: #e5e5e5; }
+[data-theme="light"] .admin-topbar .topbar-title { color: #1a1a1a; }
+[data-theme="light"] .admin-topbar .topbar-tab { color: #888; }
+[data-theme="light"] .admin-topbar .hamburger-btn { color: #1a1a1a; }
+[data-theme="light"] .admin-topbar .btn-outline { border-color: #ddd; color: #666; }
+[data-theme="light"] .admin-topbar .btn-outline:hover { border-color: #c4952e; color: #c4952e; }
+[data-theme="light"] .admin-topbar .theme-toggle-btn { background: #f5f5f5; border-color: #ddd; color: #666; }
+[data-theme="light"] .admin-topbar .theme-toggle-btn:hover { border-color: #c4952e; color: #c4952e; }
+[data-theme="light"] .admin-sidebar { background: #fff; border-color: #e5e5e5; }
+[data-theme="light"] .admin-sidebar .nav-item { color: #888; }
+[data-theme="light"] .admin-sidebar .nav-item:hover { color: #1a1a1a; background: rgba(0,0,0,0.03); }
+[data-theme="light"] .admin-sidebar .nav-item.active { color: #c4952e; background: rgba(196,149,46,0.06); border-right-color: #c4952e; }
+[data-theme="light"] .stat-card { background: #fff; border-color: #e5e5e5; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+[data-theme="light"] .stat-card .stat-value { color: #1a1a1a; }
+[data-theme="light"] .stat-card .stat-label { color: #888; }
+[data-theme="light"] .daily-visits { background: #fff; border-color: #e5e5e5; }
+[data-theme="light"] .daily-visits h3 { color: #1a1a1a; }
+[data-theme="light"] .visit-bar-row .visit-day { color: #888; }
+[data-theme="light"] .visit-bar-row .visit-bar-bg { background: #f0f0f0; }
+[data-theme="light"] .visit-bar-row .visit-count { color: #c4952e; }
+[data-theme="light"] .admin-form-group label { color: #555; }
+[data-theme="light"] .admin-form-group input, [data-theme="light"] .admin-form-group select, [data-theme="light"] .admin-form-group textarea { background: #f9f9f9; border-color: #e0e0e0; color: #1a1a1a; }
+[data-theme="light"] .admin-form-group input:focus, [data-theme="light"] .admin-form-group select:focus, [data-theme="light"] .admin-form-group textarea:focus { border-color: #c4952e; }
+[data-theme="light"] .admin-form-group select option { background: #f9f9f9; color: #1a1a1a; }
+[data-theme="light"] .admin-btn-secondary { background: #f0f0f0; color: #555; }
+[data-theme="light"] .admin-btn-secondary:hover { background: #e5e5e5; }
+[data-theme="light"] .admin-btn-icon { background: #f0f0f0; color: #888; }
+[data-theme="light"] .admin-btn-icon:hover { color: #1a1a1a; background: #e5e5e5; }
+[data-theme="light"] .admin-list-item { background: #fff; border-color: #e5e5e5; }
+[data-theme="light"] .admin-list-item:hover { border-color: #d0d0d0; }
+[data-theme="light"] .admin-list-item .item-name { color: #1a1a1a; }
+[data-theme="light"] .admin-list-item .item-detail { color: #888; }
+[data-theme="light"] .product-card-admin { background: #fff; border-color: #e5e5e5; }
+[data-theme="light"] .product-card-admin .product-img { background: #f0f0f0; }
+[data-theme="light"] .product-card-admin .product-name { color: #1a1a1a; }
+[data-theme="light"] .product-card-admin .product-category { color: #888; }
+[data-theme="light"] .admin-modal { background: #fff; border-color: #e5e5e5; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+[data-theme="light"] .admin-modal h3 { color: #1a1a1a; }
+[data-theme="light"] .toggle-switch .toggle-slider { background: #ccc; }
+[data-theme="light"] .logo-preview-area { border-color: #ddd; background: #f9f9f9; }
+[data-theme="light"] .section-header h2 { color: #1a1a1a; }
+[data-theme="light"] .section-header .filter-select { background: #fff; border-color: #ddd; color: #1a1a1a; }
+[data-theme="light"] .section-header .filter-select option { background: #fff; }
+[data-theme="light"] .admin-empty { color: #bbb; }
+[data-theme="light"] #adminPanel ::-webkit-scrollbar-track { background: #f0f0f0; }
+[data-theme="light"] #adminPanel ::-webkit-scrollbar-thumb { background: #ccc; }
+
+@media (max-width: 768px) {
+  .admin-topbar .hamburger-btn { display: flex; }
+  .admin-sidebar { position: fixed; top: 0; right: 0; z-index: 45; height: 100vh; transform: translateX(100%); box-shadow: -4px 0 20px rgba(0,0,0,0.3); }
+  .admin-sidebar.open { transform: translateX(0); }
+  .admin-content { padding: 1rem; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .admin-list-item { flex-wrap: wrap; }
+  .admin-topbar .topbar-tab { display: none; }
+}
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .product-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div id="adminPanel" class="hidden">
+  <div id="adminLogin">
+    <div class="login-card">
+      <div class="lock-icon"><svg width="28" height="28" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <h2>لوحة التحكم</h2>
+      <p>أدخل كلمة المرور</p>
+      <input type="password" id="adminPassInput" maxlength="6" inputmode="numeric" placeholder="••••••" autocomplete="off">
+      <button class="login-btn" onclick="adminLogin()">دخول</button>
+      <div class="login-error" id="adminLoginError"></div>
+      <a class="back-link" onclick="hideAdmin()">العودة للموقع</a>
+    </div>
+  </div>
+  <div id="adminDashboard">
+    <div class="admin-topbar">
+      <div class="topbar-right">
+        <button class="hamburger-btn" onclick="toggleAdminSidebar()"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="topbar-logo"><svg width="20" height="20" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <span class="topbar-title">لوحة التحكم</span>
+        <span class="topbar-tab" id="adminCurrentTabLabel">— الرئيسية</span>
+      </div>
+      <div class="topbar-left">
+        <button class="topbar-btn btn-outline" onclick="hideAdmin()">العودة للموقع</button>
+        <button class="topbar-btn btn-danger" onclick="adminLogout()">خروج</button>
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="تبديل المظهر">
+          <svg id="adminSunIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="adminMoonIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay" onclick="toggleAdminSidebar()"></div>
+    <div class="admin-body">
+      <nav class="admin-sidebar" id="adminSidebar">
+        <a class="nav-item active" data-tab="dashboard" onclick="switchAdminTab('dashboard')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>الرئيسية</a>
+        <a class="nav-item" data-tab="settings" onclick="switchAdminTab('settings')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>إعدادات الموقع</a>
+        <a class="nav-item" data-tab="contacts" onclick="switchAdminTab('contacts')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>التواصل</a>
+        <a class="nav-item" data-tab="products" onclick="switchAdminTab('products')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>المنتجات</a>
+        <a class="nav-item" data-tab="announcements" onclick="switchAdminTab('announcements')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>الإعلانات</a>
+        <a class="nav-item" data-tab="promo" onclick="switchAdminTab('promo')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>بانر العروض</a>
+      </nav>
+      <div class="admin-content">
+        <div id="adminTabDashboard" class="admin-tab-content"><div class="stat-grid" id="adminStatsGrid"></div><div class="daily-visits" id="adminDailyVisits"></div></div>
+        <div id="adminTabSettings" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>إعدادات الموقع</h2></div>
+          <div style="max-width:600px">
+            <div class="admin-form-group"><label>اسم الموقع (عربي)</label><input type="text" id="settingSiteName"></div>
+            <div class="admin-form-group"><label>اسم الموقع (إنجليزي)</label><input type="text" id="settingSiteNameEn"></div>
+            <div class="admin-form-group"><label>شعار الموقع</label><div class="logo-preview-area" id="logoPreviewArea"><svg width="32" height="32" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoUpload(event)" style="margin-bottom:0.5rem"><br><button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeLogo()">حذف اللوجو</button></div>
+            <div class="admin-form-group"><label>المظهر الافتراضي</label><select id="settingDefaultTheme"><option value="dark">داكن</option><option value="light">فاتح</option></select></div>
+            <button class="admin-btn admin-btn-primary" onclick="saveSettings()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>حفظ الإعدادات</button>
+          </div>
+        </div>
+        <div id="adminTabContacts" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>وسائل التواصل</h2><button class="admin-btn admin-btn-primary" onclick="showContactForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة</button></div>
+          <div id="adminContactsList"></div>
+        </div>
+        <div id="adminTabProducts" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>المنتجات</h2><div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap"><select class="filter-select" id="adminProductFilter" onchange="filterAdminProducts(this.value)"><option value="all">كل التصنيفات</option></select><button class="admin-btn admin-btn-primary" onclick="showProductForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة منتج</button></div></div>
+          <div class="product-grid" id="adminProductsList"></div>
+        </div>
+        <div id="adminTabAnnouncements" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>الإعلانات</h2><button class="admin-btn admin-btn-primary" onclick="showAnnouncementForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة إعلان</button></div>
+          <div id="adminAnnouncementsList"></div>
+        </div>
+        <div id="adminTabPromo" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>بانر العروض</h2></div>
+          <div style="max-width:600px">
+            <div class="admin-form-group"><label>نص البانر</label><textarea id="promoBannerText" rows="3" placeholder="أدخل نص العرض..."></textarea></div>
+            <div class="admin-form-group" style="display:flex;align-items:center;gap:0.75rem"><label style="margin:0;cursor:pointer" for="promoBannerActive">تفعيل البانر</label><label class="toggle-switch"><input type="checkbox" id="promoBannerActive"><span class="toggle-slider"></span></label></div>
+            <button class="admin-btn admin-btn-primary" onclick="savePromoBanner()">حفظ البانر</button>
+            <div id="promoPreviewArea"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="admin-modal-overlay" id="contactModalOverlay"><div class="admin-modal"><h3 id="contactModalTitle">إضافة وسيلة تواصل</h3><input type="hidden" id="contactEditId"><div class="admin-form-group"><label>المنصة</label><input type="text" id="contactPlatform" placeholder="واتساب، إنستغرام..."></div><div class="admin-form-group"><label>المعرف / الرقم</label><input type="text" id="contactHandle" placeholder="+201XXXXXXXXX"></div><div class="admin-form-group"><label>الرابط</label><input type="text" id="contactLink" placeholder="https://..."></div><div class="admin-form-group"><label>النوع</label><select id="contactType"><option value="whatsapp">واتساب</option><option value="instagram">إنستغرام</option><option value="tiktok">تيك توك</option><option value="phone">هاتف</option><option value="facebook">فيسبوك</option><option value="email">بريد إلكتروني</option></select></div><div class="admin-form-group"><label>اللون</label><input type="color" id="contactColor" value="#e2b04a" style="height:40px;padding:4px;cursor:pointer"></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveContact()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideContactForm()">إلغاء</button></div></div></div>
+  <div class="admin-modal-overlay" id="productModalOverlay"><div class="admin-modal"><h3 id="productModalTitle">إضافة منتج</h3><input type="hidden" id="productEditId"><div class="admin-form-group"><label>اسم المنتج</label><input type="text" id="productName" placeholder="اسم المنتج"></div><div class="admin-form-group"><label>السعر</label><input type="number" id="productPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>السعر الأصلي (اختياري)</label><input type="number" id="productOriginalPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>رابط الصورة</label><input type="text" id="productImage" placeholder="https://..."></div><div class="admin-form-group"><label>التصنيف</label><select id="productCategory"></select></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveProduct()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideProductForm()">إلغاء</button></div></div></div>
+  <div class="admin-modal-overlay" id="announcementModalOverlay"><div class="admin-modal"><h3 id="announcementModalTitle">إضافة إعلان</h3><input type="hidden" id="announcementEditId"><div class="admin-form-group"><label>نص الإعلان</label><textarea id="announcementText" rows="3" placeholder="نص الإعلان..."></textarea></div><div class="admin-form-group" style="display:flex;align-items:center;gap:0.75rem"><label style="margin:0;cursor:pointer" for="announcementActive">تفعيل</label><label class="toggle-switch"><input type="checkbox" id="announcementActive" checked><span class="toggle-slider"></span></label></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveAnnouncement()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideAnnouncementForm()">إلغاء</button></div></div></div>
+</div>
 
   <script>
     // ============ DEFAULT FALLBACK DATA ============
@@ -1208,10 +1494,328 @@
       window.open(waLink + "&text=" + msg, '_blank');
     }
 
-    // ============ ADMIN ACCESS ============
+    // ============ ADMIN PANEL ============
+    const ADMIN_PASSWORD = '857660';
+
+    function saveData() { try { localStorage.setItem('brq_data', JSON.stringify(data)); } catch(e){} }
+
+    function renderAll() {
+      renderAnnouncements(); renderPromoBanner(); renderBranding();
+      renderWhatsAppLinks(); renderCategories(); renderProductSections();
+      renderTestimonials(); renderContacts(); renderFooterLinks(); renderFooterSocial();
+    }
+
     function openAdmin() {
       window.location.hash = '#admin';
-      window.location.reload();
+      showAdmin();
+    }
+
+    function showAdmin() {
+      document.getElementById('mainSite').classList.add('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+      if (sessionStorage.getItem('admin_auth') === 'true') {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminDashboard').classList.add('active');
+        renderAllAdminTabs();
+        updateAdminThemeIcon();
+      } else {
+        document.getElementById('adminLogin').style.display = 'flex';
+        document.getElementById('adminDashboard').classList.remove('active');
+        var pi = document.getElementById('adminPassInput');
+        if (pi) { pi.value = ''; pi.focus(); }
+        var err = document.getElementById('adminLoginError');
+        if (err) err.textContent = '';
+      }
+    }
+
+    function hideAdmin() {
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('mainSite').classList.remove('hidden');
+      window.location.hash = '';
+      renderAll();
+    }
+
+    function adminLogin() {
+      var pass = document.getElementById('adminPassInput').value;
+      if (pass === ADMIN_PASSWORD) {
+        sessionStorage.setItem('admin_auth', 'true');
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminDashboard').classList.add('active');
+        renderAllAdminTabs();
+        updateAdminThemeIcon();
+      } else {
+        document.getElementById('adminLoginError').textContent = 'كلمة المرور غير صحيحة';
+      }
+    }
+
+    function adminLogout() {
+      sessionStorage.removeItem('admin_auth');
+      document.getElementById('adminDashboard').classList.remove('active');
+      document.getElementById('adminLogin').style.display = 'flex';
+      document.getElementById('adminPassInput').value = '';
+      document.getElementById('adminLoginError').textContent = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'adminPassInput') adminLogin();
+    });
+
+    // Admin Nav
+    var adminCurrentTab = 'dashboard';
+    var adminTabLabels = { dashboard:'الرئيسية', settings:'إعدادات الموقع', contacts:'التواصل', products:'المنتجات', announcements:'الإعلانات', promo:'بانر العروض' };
+
+    function switchAdminTab(tab) {
+      adminCurrentTab = tab;
+      document.querySelectorAll('.admin-tab-content').forEach(function(el) { el.style.display = 'none'; });
+      var tabEl = document.getElementById('adminTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (tabEl) tabEl.style.display = 'block';
+      document.querySelectorAll('.admin-sidebar .nav-item').forEach(function(el) { el.classList.toggle('active', el.dataset.tab === tab); });
+      document.getElementById('adminCurrentTabLabel').textContent = '— ' + (adminTabLabels[tab] || tab);
+      closeAdminSidebar();
+      renderAdminTab(tab);
+    }
+
+    function toggleAdminSidebar() {
+      document.getElementById('adminSidebar').classList.toggle('open');
+      document.getElementById('adminSidebarOverlay').classList.toggle('active');
+    }
+    function closeAdminSidebar() {
+      document.getElementById('adminSidebar').classList.remove('open');
+      document.getElementById('adminSidebarOverlay').classList.remove('active');
+    }
+
+    function updateAdminThemeIcon() {
+      var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      document.getElementById('adminSunIcon').style.display = theme === 'light' ? 'block' : 'none';
+      document.getElementById('adminMoonIcon').style.display = theme === 'dark' ? 'block' : 'none';
+    }
+
+    function renderAllAdminTabs() { ['dashboard','settings','contacts','products','announcements','promo'].forEach(renderAdminTab); }
+
+    function renderAdminTab(tab) {
+      switch(tab) {
+        case 'dashboard': renderAdminDashboard(); break;
+        case 'settings': renderAdminSettings(); break;
+        case 'contacts': renderAdminContacts(); break;
+        case 'products': renderAdminProducts(); break;
+        case 'announcements': renderAdminAnnouncements(); break;
+        case 'promo': renderAdminPromo(); break;
+      }
+    }
+
+    function escapeHtml(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // Dashboard
+    function renderAdminDashboard() {
+      var vc = (data.stats && data.stats.visitorCount) || 0;
+      var pc = (data.products || []).length;
+      var cc = (data.categories || []).length;
+      var ct = (data.contacts || []).length;
+      document.getElementById('adminStatsGrid').innerHTML =
+        '<div class="stat-card"><div class="stat-glow" style="background:#e2b04a"></div><div class="stat-icon" style="background:rgba(226,176,74,0.1)"><svg width="22" height="22" fill="none" stroke="#e2b04a" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-value">'+vc.toLocaleString('ar-EG')+'</div><div class="stat-label">إجمالي الزيارات</div></div>' +
+        '<div class="stat-card"><div class="stat-glow" style="background:#3b82f6"></div><div class="stat-icon" style="background:rgba(59,130,246,0.1)"><svg width="22" height="22" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stat-value">'+pc+'</div><div class="stat-label">المنتجات</div></div>' +
+        '<div class="stat-card"><div class="stat-glow" style="background:#10b981"></div><div class="stat-icon" style="background:rgba(16,185,129,0.1)"><svg width="22" height="22" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="stat-value">'+cc+'</div><div class="stat-label">التصنيفات</div></div>' +
+        '<div class="stat-card"><div class="stat-glow" style="background:#a855f7"></div><div class="stat-icon" style="background:rgba(168,85,247,0.1)"><svg width="22" height="22" fill="none" stroke="#a855f7" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="stat-value">'+ct+'</div><div class="stat-label">وسائل التواصل</div></div>';
+
+      var dv = (data.stats && data.stats.dailyVisits) || {};
+      var dn = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+      var days = [];
+      for (var i = 6; i >= 0; i--) { var d = new Date(); d.setDate(d.getDate() - i); var k = d.toISOString().split('T')[0]; days.push({key:k, name:dn[d.getDay()], count:dv[k]||0}); }
+      var mx = Math.max.apply(null, days.map(function(d){return d.count;})); mx = Math.max(mx, 1);
+      var h = '<h3>الزيارات اليومية (آخر 7 أيام)</h3>';
+      if (days.every(function(d){return d.count===0;})) { h += '<div class="admin-empty"><p>لا توجد بيانات زيارات بعد</p></div>'; }
+      else { days.forEach(function(d) { var pct = Math.max(2, (d.count/mx)*100); h += '<div class="visit-bar-row"><span class="visit-day">'+d.name+'</span><div class="visit-bar-bg"><div class="visit-bar-fill" style="width:'+pct+'%"></div></div><span class="visit-count">'+d.count+'</span></div>'; }); }
+      document.getElementById('adminDailyVisits').innerHTML = h;
+    }
+
+    // Settings
+    function renderAdminSettings() {
+      var s = data.settings || {};
+      document.getElementById('settingSiteName').value = s.siteName || '';
+      document.getElementById('settingSiteNameEn').value = s.siteNameEn || '';
+      document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
+      var preview = document.getElementById('logoPreviewArea');
+      if (s.logo) { preview.innerHTML = '<img src="'+s.logo+'" alt="Logo">'; }
+      else { preview.innerHTML = '<svg width="32" height="32" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'; }
+    }
+    function saveSettings() {
+      if (!data.settings) data.settings = {};
+      data.settings.siteName = document.getElementById('settingSiteName').value.trim() || 'برق بنزين';
+      data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || '3D Automotive Art';
+      data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
+      saveData(); renderAll(); alert('تم حفظ الإعدادات بنجاح');
+    }
+    function handleLogoUpload(e) {
+      var f = e.target.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(ev) { if (!data.settings) data.settings = {}; data.settings.logo = ev.target.result; saveData(); renderAdminSettings(); };
+      r.readAsDataURL(f);
+    }
+    function removeLogo() {
+      if (!data.settings) data.settings = {};
+      data.settings.logo = null; saveData(); document.getElementById('logoFileInput').value = '';
+      renderAdminSettings(); renderAll();
+    }
+
+    // Contacts
+    function renderAdminContacts() {
+      var list = document.getElementById('adminContactsList'); var cts = data.contacts || [];
+      if (!cts.length) { list.innerHTML = '<div class="admin-empty"><p>لا توجد وسائل تواصل</p></div>'; return; }
+      var tl = {whatsapp:'واتساب',instagram:'إنستغرام',tiktok:'تيك توك',phone:'هاتف',facebook:'فيسبوك',email:'بريد'};
+      var h = '';
+      cts.forEach(function(c) {
+        h += '<div class="admin-list-item"><div style="width:36px;height:36px;border-radius:8px;background:'+(c.color||'#e2b04a')+'20;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:12px;height:12px;border-radius:50%;background:'+(c.color||'#e2b04a')+'"></div></div><div class="item-info"><div class="item-name">'+escapeHtml(c.platform)+'</div><div class="item-detail">'+escapeHtml(c.handle)+' · '+(tl[c.type]||c.type)+'</div></div><div class="item-actions"><button class="admin-btn-icon edit" onclick="showContactForm(\''+c.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteContact(\''+c.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div>';
+      });
+      list.innerHTML = h;
+    }
+    function showContactForm(id) {
+      var m = document.getElementById('contactModalOverlay');
+      if (id) {
+        var c = (data.contacts||[]).find(function(x){return x.id===id;}); if (!c) return;
+        document.getElementById('contactModalTitle').textContent = 'تعديل وسيلة تواصل';
+        document.getElementById('contactEditId').value = c.id;
+        document.getElementById('contactPlatform').value = c.platform||'';
+        document.getElementById('contactHandle').value = c.handle||'';
+        document.getElementById('contactLink').value = c.link||'';
+        document.getElementById('contactType').value = c.type||'whatsapp';
+        document.getElementById('contactColor').value = c.color||'#e2b04a';
+      } else {
+        document.getElementById('contactModalTitle').textContent = 'إضافة وسيلة تواصل';
+        document.getElementById('contactEditId').value = '';
+        document.getElementById('contactPlatform').value = '';
+        document.getElementById('contactHandle').value = '';
+        document.getElementById('contactLink').value = '';
+        document.getElementById('contactType').value = 'whatsapp';
+        document.getElementById('contactColor').value = '#e2b04a';
+      }
+      m.classList.add('active');
+    }
+    function hideContactForm() { document.getElementById('contactModalOverlay').classList.remove('active'); }
+    function saveContact() {
+      if (!data.contacts) data.contacts = [];
+      var eid = document.getElementById('contactEditId').value;
+      var obj = { platform: document.getElementById('contactPlatform').value.trim(), handle: document.getElementById('contactHandle').value.trim(), link: document.getElementById('contactLink').value.trim(), type: document.getElementById('contactType').value, color: document.getElementById('contactColor').value };
+      if (!obj.platform || !obj.handle) { alert('يرجى ملء المنصة والمعرف'); return; }
+      if (eid) { var idx = data.contacts.findIndex(function(c){return c.id===eid;}); if (idx!==-1) data.contacts[idx] = Object.assign({}, data.contacts[idx], obj); }
+      else { obj.id = 'c'+Date.now(); data.contacts.push(obj); }
+      saveData(); hideContactForm(); renderAdminContacts(); renderAll();
+    }
+    function deleteContact(id) { if (!confirm('حذف هذه وسيلة التواصل؟')) return; data.contacts = (data.contacts||[]).filter(function(c){return c.id!==id;}); saveData(); renderAdminContacts(); renderAll(); }
+
+    // Products
+    function renderAdminProducts() {
+      var cats = data.categories || []; var fs = document.getElementById('adminProductFilter');
+      var cs = document.getElementById('productCategory'); var cv = fs.value;
+      var fo = '<option value="all">كل التصنيفات</option>'; var co = '';
+      cats.forEach(function(c) { fo += '<option value="'+c.id+'">'+escapeHtml(c.titleAr||c.titleEn)+'</option>'; co += '<option value="'+c.id+'">'+escapeHtml(c.titleAr||c.titleEn)+'</option>'; });
+      fs.innerHTML = fo; fs.value = cv||'all'; cs.innerHTML = co;
+      renderProductList(cv||'all');
+    }
+    function renderProductList(fc) {
+      var list = document.getElementById('adminProductsList'); var prods = data.products || [];
+      if (fc && fc !== 'all') prods = prods.filter(function(p){return p.category===fc;});
+      if (!prods.length) { list.innerHTML = '<div class="admin-empty" style="grid-column:1/-1"><p>لا توجد منتجات</p></div>'; return; }
+      var cats = data.categories || []; var h = '';
+      prods.forEach(function(p) {
+        var cat = cats.find(function(c){return c.id===p.category;}); var cn = cat ? (cat.titleAr||cat.titleEn) : '—';
+        var hd = p.originalPrice && Number(p.originalPrice) > Number(p.price); var dp = hd ? Math.round((1-Number(p.price)/Number(p.originalPrice))*100) : 0;
+        h += '<div class="product-card-admin"><img class="product-img" src="'+escapeHtml(p.image)+'" alt="" onerror="this.style.background=\'#1a1a1a\'"><div class="product-body"><div class="product-name">'+escapeHtml(p.name)+'</div><div class="product-prices"><span class="product-price">LE '+Number(p.price||0).toLocaleString('en-US')+'</span>'+(hd?'<span class="product-original">LE '+Number(p.originalPrice).toLocaleString('en-US')+'</span><span class="product-discount">-'+dp+'%</span>':'')+'</div><div class="product-category">'+escapeHtml(cn)+'</div><div class="product-actions"><button class="admin-btn-icon edit" onclick="showProductForm(\''+p.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteProduct(\''+p.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+      });
+      list.innerHTML = h;
+    }
+    function filterAdminProducts(v) { renderProductList(v); }
+    function showProductForm(id) {
+      var m = document.getElementById('productModalOverlay');
+      if (id) {
+        var p = (data.products||[]).find(function(x){return x.id===id;}); if (!p) return;
+        document.getElementById('productModalTitle').textContent = 'تعديل منتج';
+        document.getElementById('productEditId').value = p.id;
+        document.getElementById('productName').value = p.name||'';
+        document.getElementById('productPrice').value = p.price||'';
+        document.getElementById('productOriginalPrice').value = p.originalPrice||'';
+        document.getElementById('productImage').value = p.image||'';
+        document.getElementById('productCategory').value = p.category||'';
+      } else {
+        document.getElementById('productModalTitle').textContent = 'إضافة منتج';
+        document.getElementById('productEditId').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productOriginalPrice').value = '';
+        document.getElementById('productImage').value = '';
+        var cats = data.categories||[]; document.getElementById('productCategory').value = cats.length ? cats[0].id : '';
+      }
+      m.classList.add('active');
+    }
+    function hideProductForm() { document.getElementById('productModalOverlay').classList.remove('active'); }
+    function saveProduct() {
+      if (!data.products) data.products = [];
+      var eid = document.getElementById('productEditId').value;
+      var obj = { name: document.getElementById('productName').value.trim(), price: parseFloat(document.getElementById('productPrice').value)||0, originalPrice: parseFloat(document.getElementById('productOriginalPrice').value)||0, image: document.getElementById('productImage').value.trim(), category: document.getElementById('productCategory').value };
+      if (!obj.name) { alert('يرجى إدخال اسم المنتج'); return; }
+      if (obj.originalPrice <= 0) obj.originalPrice = 0;
+      if (eid) { var idx = data.products.findIndex(function(p){return p.id===eid;}); if (idx!==-1) data.products[idx] = Object.assign({}, data.products[idx], obj); }
+      else { obj.id = 'p'+Date.now(); data.products.push(obj); }
+      saveData(); hideProductForm(); renderAdminProducts(); renderAll();
+    }
+    function deleteProduct(id) { if (!confirm('حذف هذا المنتج؟')) return; data.products = (data.products||[]).filter(function(p){return p.id!==id;}); saveData(); renderAdminProducts(); renderAll(); }
+
+    // Announcements
+    function renderAdminAnnouncements() {
+      var list = document.getElementById('adminAnnouncementsList'); var anns = data.announcements || [];
+      if (!anns.length) { list.innerHTML = '<div class="admin-empty"><p>لا توجد إعلانات</p></div>'; return; }
+      var h = '';
+      anns.forEach(function(a) {
+        var act = a.active !== false;
+        h += '<div class="admin-list-item"><div class="item-info"><div class="item-name">'+escapeHtml(a.text)+'</div><div class="item-detail">'+(a.date ? new Date(a.date).toLocaleDateString('ar-EG') : '')+'</div></div><div style="display:flex;align-items:center;gap:0.75rem"><label class="toggle-switch" style="width:40px;height:22px"><input type="checkbox" '+(act?'checked':'')+' onchange="toggleAnnouncement(\''+a.id+'\')"><span class="toggle-slider" style="border-radius:22px"></span></label><span style="font-size:0.8rem;color:'+(act?'#10b981':'#666')+';min-width:50px">'+(act?'مفعّل':'معطّل')+'</span><div class="item-actions"><button class="admin-btn-icon edit" onclick="showAnnouncementForm(\''+a.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteAnnouncement(\''+a.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+      });
+      list.innerHTML = h;
+    }
+    function showAnnouncementForm(id) {
+      var m = document.getElementById('announcementModalOverlay');
+      if (id) {
+        var a = (data.announcements||[]).find(function(x){return x.id===id;}); if (!a) return;
+        document.getElementById('announcementModalTitle').textContent = 'تعديل إعلان';
+        document.getElementById('announcementEditId').value = a.id;
+        document.getElementById('announcementText').value = a.text||'';
+        document.getElementById('announcementActive').checked = a.active !== false;
+      } else {
+        document.getElementById('announcementModalTitle').textContent = 'إضافة إعلان';
+        document.getElementById('announcementEditId').value = '';
+        document.getElementById('announcementText').value = '';
+        document.getElementById('announcementActive').checked = true;
+      }
+      m.classList.add('active');
+    }
+    function hideAnnouncementForm() { document.getElementById('announcementModalOverlay').classList.remove('active'); }
+    function saveAnnouncement() {
+      if (!data.announcements) data.announcements = [];
+      var eid = document.getElementById('announcementEditId').value;
+      var obj = { text: document.getElementById('announcementText').value.trim(), active: document.getElementById('announcementActive').checked };
+      if (!obj.text) { alert('يرجى إدخال نص الإعلان'); return; }
+      if (eid) { var idx = data.announcements.findIndex(function(a){return a.id===eid;}); if (idx!==-1) data.announcements[idx] = Object.assign({}, data.announcements[idx], obj); }
+      else { obj.id = 'a'+Date.now(); obj.date = new Date().toISOString(); data.announcements.push(obj); }
+      saveData(); hideAnnouncementForm(); renderAdminAnnouncements(); renderAll();
+    }
+    function deleteAnnouncement(id) { if (!confirm('حذف هذا الإعلان؟')) return; data.announcements = (data.announcements||[]).filter(function(a){return a.id!==id;}); saveData(); renderAdminAnnouncements(); renderAll(); }
+    function toggleAnnouncement(id) { var a = (data.announcements||[]).find(function(x){return x.id===id;}); if (a) { a.active = !a.active; saveData(); renderAdminAnnouncements(); renderAll(); } }
+
+    // Promo Banner
+    function renderAdminPromo() {
+      var pb = data.promoBanner || {};
+      document.getElementById('promoBannerText').value = pb.text || '';
+      document.getElementById('promoBannerActive').checked = pb.active !== false;
+      renderPromoPreview();
+    }
+    function savePromoBanner() {
+      if (!data.promoBanner) data.promoBanner = {};
+      data.promoBanner.text = document.getElementById('promoBannerText').value.trim();
+      data.promoBanner.active = document.getElementById('promoBannerActive').checked;
+      saveData(); renderPromoPreview(); renderAll(); alert('تم حفظ البانر بنجاح');
+    }
+    function renderPromoPreview() {
+      var a = document.getElementById('promoPreviewArea'); var pb = data.promoBanner || {};
+      if (pb.text && pb.active !== false) a.innerHTML = '<div class="promo-preview">'+escapeHtml(pb.text)+'</div>';
+      else a.innerHTML = '<div class="promo-preview" style="opacity:0.3">'+(escapeHtml(pb.text)||'معاينة البانر ستظهر هنا')+'</div>';
     }
 
     // ============ INIT ============
@@ -1224,24 +1828,37 @@
       // Load data
       loadData();
 
-      // Track visitor
-      trackVisitor();
+      // Track visitor (only on main site)
+      if (window.location.hash !== '#admin') trackVisitor();
 
       // Apply theme
       initTheme();
 
-      // Render everything
-      renderAnnouncements();
-      renderPromoBanner();
-      renderBranding();
-      renderWhatsAppLinks();
-      renderCategories();
-      renderProductSections();
-      renderTestimonials();
-      renderContacts();
-      renderFooterLinks();
-      renderFooterSocial();
-      handleNavScroll();
+      // Check if admin
+      if (window.location.hash === '#admin') {
+        showAdmin();
+      } else {
+        // Render main site
+        renderAnnouncements();
+        renderPromoBanner();
+        renderBranding();
+        renderWhatsAppLinks();
+        renderCategories();
+        renderProductSections();
+        renderTestimonials();
+        renderContacts();
+        renderFooterLinks();
+        renderFooterSocial();
+        handleNavScroll();
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#admin') {
+        showAdmin();
+      } else if (!document.getElementById('adminPanel').classList.contains('hidden')) {
+        hideAdmin();
+      }
     });
   </script>
 </body>
