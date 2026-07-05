@@ -71,13 +71,15 @@
       animation: bounce-scroll 2s ease-in-out infinite;
     }
 
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+    .promo-text {
+      text-align: center;
+      width: 100%;
+      font-weight: 700;
+      font-size: 0.75rem;
+      line-height: 1.5;
     }
-
-    .animate-marquee {
-      animation: marquee 25s linear infinite;
+    @media (min-width: 640px) {
+      .promo-text { font-size: 0.875rem; }
     }
 
     @keyframes pulse-glow {
@@ -325,8 +327,8 @@
     </nav>
 
     <!-- PROMO BANNER -->
-    <div id="promoBanner" class="bg-gold overflow-hidden h-8 sm:h-10 flex items-center relative z-40">
-      <div class="animate-marquee whitespace-nowrap flex items-center gap-8 text-dark font-bold text-xs sm:text-sm">
+    <div id="promoBanner" class="bg-gold h-8 sm:h-10 flex items-center justify-center relative z-40 px-4">
+      <div class="promo-text text-dark">
       </div>
     </div>
 
@@ -1164,14 +1166,8 @@
         return;
       }
       banner.style.display = '';
-      const marqueeDiv = banner.querySelector('.animate-marquee');
-      const text = data.promoBanner.text;
-      const repeats = 12;
-      let spans = '';
-      for (let i = 0; i < repeats; i++) {
-        spans += '<span>' + text + '</span>';
-      }
-      marqueeDiv.innerHTML = spans;
+      const textDiv = banner.querySelector('.promo-text');
+      textDiv.textContent = data.promoBanner.text;
     }
 
     // ============ RENDER: SITE BRANDING ============
@@ -1631,8 +1627,8 @@
     // Settings
     function renderAdminSettings() {
       var s = data.settings || {};
-      document.getElementById('settingSiteName').value = s.siteName || '';
-      document.getElementById('settingSiteNameEn').value = s.siteNameEn || '';
+      document.getElementById('settingSiteName').value = s.siteName || 'برق بنزين';
+      document.getElementById('settingSiteNameEn').value = s.siteNameEn || '3D Automotive Art';
       document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
       var preview = document.getElementById('logoPreviewArea');
       if (s.logo) { preview.innerHTML = '<img src="'+s.logo+'" alt="Logo">'; }
@@ -1643,18 +1639,29 @@
       data.settings.siteName = document.getElementById('settingSiteName').value.trim() || 'برق بنزين';
       data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || '3D Automotive Art';
       data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
-      saveData(); renderAll(); alert('تم حفظ الإعدادات بنجاح');
+      saveData();
+      renderBranding();
+      alert('تم حفظ الإعدادات بنجاح ✓');
     }
     function handleLogoUpload(e) {
       var f = e.target.files[0]; if (!f) return;
       var r = new FileReader();
-      r.onload = function(ev) { if (!data.settings) data.settings = {}; data.settings.logo = ev.target.result; saveData(); renderAdminSettings(); };
+      r.onload = function(ev) {
+        if (!data.settings) data.settings = {};
+        data.settings.logo = ev.target.result;
+        saveData();
+        renderBranding();
+        renderAdminSettings();
+      };
       r.readAsDataURL(f);
     }
     function removeLogo() {
       if (!data.settings) data.settings = {};
-      data.settings.logo = null; saveData(); document.getElementById('logoFileInput').value = '';
-      renderAdminSettings(); renderAll();
+      data.settings.logo = null;
+      saveData();
+      document.getElementById('logoFileInput').value = '';
+      renderBranding();
+      renderAdminSettings();
     }
 
     // Contacts
