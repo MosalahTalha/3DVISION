@@ -829,6 +829,7 @@
         <a class="nav-item" data-tab="settings" onclick="switchAdminTab('settings')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>إعدادات الموقع</a>
         <a class="nav-item" data-tab="contacts" onclick="switchAdminTab('contacts')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>التواصل</a>
         <a class="nav-item" data-tab="products" onclick="switchAdminTab('products')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>المنتجات</a>
+        <a class="nav-item" data-tab="categories" onclick="switchAdminTab('categories')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>التصنيفات</a>
         <a class="nav-item" data-tab="announcements" onclick="switchAdminTab('announcements')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>الإعلانات</a>
         <a class="nav-item" data-tab="promo" onclick="switchAdminTab('promo')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>بانر العروض</a>
       </nav>
@@ -852,6 +853,10 @@
           <div class="section-header"><h2>المنتجات</h2><div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap"><select class="filter-select" id="adminProductFilter" onchange="filterAdminProducts(this.value)"><option value="all">كل التصنيفات</option></select><button class="admin-btn admin-btn-primary" onclick="showProductForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة منتج</button></div></div>
           <div class="product-grid" id="adminProductsList"></div>
         </div>
+        <div id="adminTabCategories" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>التصنيفات</h2><button class="admin-btn admin-btn-primary" onclick="showCategoryForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة تصنيف</button></div>
+          <div id="adminCategoriesList"></div>
+        </div>
         <div id="adminTabAnnouncements" class="admin-tab-content" style="display:none">
           <div class="section-header"><h2>الإعلانات</h2><button class="admin-btn admin-btn-primary" onclick="showAnnouncementForm(null)"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة إعلان</button></div>
           <div id="adminAnnouncementsList"></div>
@@ -868,8 +873,9 @@
       </div>
     </div>
   </div>
-  <div class="admin-modal-overlay" id="contactModalOverlay"><div class="admin-modal"><h3 id="contactModalTitle">إضافة وسيلة تواصل</h3><input type="hidden" id="contactEditId"><div class="admin-form-group"><label>المنصة</label><input type="text" id="contactPlatform" placeholder="واتساب، إنستغرام..."></div><div class="admin-form-group"><label>المعرف / الرقم</label><input type="text" id="contactHandle" placeholder="+201XXXXXXXXX"></div><div class="admin-form-group"><label>الرابط</label><input type="text" id="contactLink" placeholder="https://..."></div><div class="admin-form-group"><label>النوع</label><select id="contactType"><option value="whatsapp">واتساب</option><option value="instagram">إنستغرام</option><option value="tiktok">تيك توك</option><option value="phone">هاتف</option><option value="facebook">فيسبوك</option><option value="email">بريد إلكتروني</option></select></div><div class="admin-form-group"><label>اللون</label><input type="color" id="contactColor" value="#e2b04a" style="height:40px;padding:4px;cursor:pointer"></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveContact()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideContactForm()">إلغاء</button></div></div></div>
-  <div class="admin-modal-overlay" id="productModalOverlay"><div class="admin-modal"><h3 id="productModalTitle">إضافة منتج</h3><input type="hidden" id="productEditId"><div class="admin-form-group"><label>اسم المنتج</label><input type="text" id="productName" placeholder="اسم المنتج"></div><div class="admin-form-group"><label>السعر</label><input type="number" id="productPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>السعر الأصلي (اختياري)</label><input type="number" id="productOriginalPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>رابط الصورة</label><input type="text" id="productImage" placeholder="https://..."></div><div class="admin-form-group"><label>التصنيف</label><select id="productCategory"></select></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveProduct()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideProductForm()">إلغاء</button></div></div></div>
+  <div class="admin-modal-overlay" id="contactModalOverlay"><div class="admin-modal"><h3 id="contactModalTitle">إضافة وسيلة تواصل</h3><input type="hidden" id="contactEditId"><div class="admin-form-group"><label>المنصة</label><input type="text" id="contactPlatform" placeholder="واتساب، إنستغرام..."></div><div class="admin-form-group"><label>المعرف / الرقم</label><input type="text" id="contactHandle" placeholder="+201XXXXXXXXX"></div><div class="admin-form-group"><label>الرابط</label><input type="text" id="contactLink" placeholder="https://..."></div><div class="admin-form-group"><label>النوع</label><select id="contactType"><option value="whatsapp">واتساب</option><option value="instagram">إنستغرام</option><option value="tiktok">تيك توك</option><option value="phone">هاتف</option><option value="facebook">فيسبوك</option><option value="email">بريد إلكتروني</option><option value="linkedin">لينكد إن</option></select></div><div class="admin-form-group"><label>اللون</label><input type="color" id="contactColor" value="#e2b04a" style="height:40px;padding:4px;cursor:pointer"></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveContact()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideContactForm()">إلغاء</button></div></div></div>
+  <div class="admin-modal-overlay" id="productModalOverlay"><div class="admin-modal"><h3 id="productModalTitle">إضافة منتج</h3><input type="hidden" id="productEditId"><div class="admin-form-group"><label>اسم المنتج</label><input type="text" id="productName" placeholder="اسم المنتج"></div><div class="admin-form-group"><label>السعر</label><input type="number" id="productPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>السعر الأصلي (اختياري)</label><input type="number" id="productOriginalPrice" placeholder="0" step="1" min="0"></div><div class="admin-form-group"><label>صورة المنتج</label><div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:end"><div style="flex:1;min-width:200px"><input type="text" id="productImage" placeholder="رابط الصورة https://..." style="margin-bottom:0.35rem"><input type="file" id="productImageFile" accept="image/*" onchange="handleProductImageUpload(event)" style="font-size:0.85rem"></div><div id="productImagePreview" style="width:60px;height:60px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#1a1a1a;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"><svg width="24" height="24" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div></div></div><div class="admin-form-group"><label>التصنيف</label><select id="productCategory"></select></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveProduct()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideProductForm()">إلغاء</button></div></div></div>
+  <div class="admin-modal-overlay" id="categoryModalOverlay"><div class="admin-modal"><h3 id="categoryModalTitle">إضافة تصنيف</h3><input type="hidden" id="categoryEditId"><div class="admin-form-group"><label>اسم التصنيف (عربي)</label><input type="text" id="categoryTitleAr" placeholder="مثال: إطارات السيارات"></div><div class="admin-form-group"><label>اسم التصنيف (إنجليزي)</label><input type="text" id="categoryTitleEn" placeholder="FRAMES"></div><div class="admin-form-group"><label>وصف التصنيف</label><input type="text" id="categoryDescAr" placeholder="وصف مختصر بالعربي..."></div><div class="admin-form-group"><label>رابط صورة التصنيف</label><div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:end"><div style="flex:1;min-width:200px"><input type="text" id="categoryImage" placeholder="https://..." style="margin-bottom:0.35rem"><input type="file" id="categoryImageFile" accept="image/*" onchange="handleCategoryImageUpload(event)" style="font-size:0.85rem"></div><div id="categoryImagePreview" style="width:60px;height:60px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#1a1a1a;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"><svg width="24" height="24" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div></div></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveCategory()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideCategoryForm()">إلغاء</button></div></div></div>
   <div class="admin-modal-overlay" id="announcementModalOverlay"><div class="admin-modal"><h3 id="announcementModalTitle">إضافة إعلان</h3><input type="hidden" id="announcementEditId"><div class="admin-form-group"><label>نص الإعلان</label><textarea id="announcementText" rows="3" placeholder="نص الإعلان..."></textarea></div><div class="admin-form-group" style="display:flex;align-items:center;gap:0.75rem"><label style="margin:0;cursor:pointer" for="announcementActive">تفعيل</label><label class="toggle-switch"><input type="checkbox" id="announcementActive" checked><span class="toggle-slider"></span></label></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveAnnouncement()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideAnnouncementForm()">إلغاء</button></div></div></div>
 </div>
 
@@ -1098,6 +1104,8 @@
           return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>';
         case 'email':
           return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
+        case 'linkedin':
+          return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>';
         default:
           return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
       }
@@ -1111,6 +1119,7 @@
         case 'facebook': return { bg: 'bg-blue-600/10', hoverBorder: 'hover:border-blue-500/30', hoverBg: 'hover:bg-blue-600/20', text: 'text-blue-500', socialBg: 'hover:bg-blue-600/20' };
         case 'phone': return { bg: 'bg-blue-600/10', hoverBorder: 'hover:border-blue-500/30', hoverBg: 'hover:bg-blue-600/20', text: 'text-blue-400', socialBg: 'hover:bg-blue-600/20' };
         case 'email': return { bg: 'bg-yellow-600/10', hoverBorder: 'hover:border-yellow-500/30', hoverBg: 'hover:bg-yellow-600/20', text: 'text-yellow-500', socialBg: 'hover:bg-yellow-600/20' };
+        case 'linkedin': return { bg: 'bg-blue-700/10', hoverBorder: 'hover:border-blue-600/30', hoverBg: 'hover:bg-blue-700/20', text: 'text-blue-600', socialBg: 'hover:bg-blue-700/20' };
         default: return { bg: 'bg-white/5', hoverBorder: 'hover:border-white/30', hoverBg: 'hover:bg-white/10', text: 'text-white', socialBg: 'hover:bg-white/10' };
       }
     }
@@ -1257,7 +1266,7 @@
     function renderProductSections() {
       const container = document.getElementById('productSections');
       const cats = data.categories || [];
-      const products = data.products || [];
+      const products = (data.products || []).filter(p => p.image).sort((a,b) => (a.order||0) - (b.order||0));
       let html = '';
       const waLink = getWhatsAppLink();
 
@@ -1558,7 +1567,7 @@
 
     // Admin Nav
     var adminCurrentTab = 'dashboard';
-    var adminTabLabels = { dashboard:'الرئيسية', settings:'إعدادات الموقع', contacts:'التواصل', products:'المنتجات', announcements:'الإعلانات', promo:'بانر العروض' };
+    var adminTabLabels = { dashboard:'الرئيسية', settings:'إعدادات الموقع', contacts:'التواصل', products:'المنتجات', categories:'التصنيفات', announcements:'الإعلانات', promo:'بانر العروض' };
 
     function switchAdminTab(tab) {
       adminCurrentTab = tab;
@@ -1586,7 +1595,7 @@
       document.getElementById('adminMoonIcon').style.display = theme === 'dark' ? 'block' : 'none';
     }
 
-    function renderAllAdminTabs() { ['dashboard','settings','contacts','products','announcements','promo'].forEach(renderAdminTab); }
+    function renderAllAdminTabs() { ['dashboard','settings','contacts','products','categories','announcements','promo'].forEach(renderAdminTab); }
 
     function renderAdminTab(tab) {
       switch(tab) {
@@ -1594,6 +1603,7 @@
         case 'settings': renderAdminSettings(); break;
         case 'contacts': renderAdminContacts(); break;
         case 'products': renderAdminProducts(); break;
+        case 'categories': renderAdminCategories(); break;
         case 'announcements': renderAdminAnnouncements(); break;
         case 'promo': renderAdminPromo(); break;
       }
@@ -1719,22 +1729,62 @@
       renderProductList(cv||'all');
     }
     function renderProductList(fc) {
-      var list = document.getElementById('adminProductsList'); var prods = data.products || [];
+      var list = document.getElementById('adminProductsList'); var prods = (data.products || []).slice();
       if (fc && fc !== 'all') prods = prods.filter(function(p){return p.category===fc;});
+      prods.sort(function(a,b){ return (a.order||0) - (b.order||0); });
       if (!prods.length) { list.innerHTML = '<div class="admin-empty" style="grid-column:1/-1"><p>لا توجد منتجات</p></div>'; return; }
       var cats = data.categories || []; var h = '';
-      prods.forEach(function(p) {
+      prods.forEach(function(p, idx) {
         var cat = cats.find(function(c){return c.id===p.category;}); var cn = cat ? (cat.titleAr||cat.titleEn) : '—';
         var hd = p.originalPrice && Number(p.originalPrice) > Number(p.price); var dp = hd ? Math.round((1-Number(p.price)/Number(p.originalPrice))*100) : 0;
-        h += '<div class="product-card-admin"><img class="product-img" src="'+escapeHtml(p.image)+'" alt="" onerror="this.style.background=\'#1a1a1a\'"><div class="product-body"><div class="product-name">'+escapeHtml(p.name)+'</div><div class="product-prices"><span class="product-price">LE '+Number(p.price||0).toLocaleString('en-US')+'</span>'+(hd?'<span class="product-original">LE '+Number(p.originalPrice).toLocaleString('en-US')+'</span><span class="product-discount">-'+dp+'%</span>':'')+'</div><div class="product-category">'+escapeHtml(cn)+'</div><div class="product-actions"><button class="admin-btn-icon edit" onclick="showProductForm(\''+p.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteProduct(\''+p.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+        var isFirst = idx === 0, isLast = idx === prods.length - 1;
+        var orderBtns = '<div style="display:flex;flex-direction:column;gap:2px;margin-left:0.35rem">'
+          +'<button class="admin-btn-icon edit" onclick="moveProductOrder(\''+p.id+'\',-1)" title="تقديم"'+(isFirst?' disabled style="opacity:0.3"':'')+'><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>'
+          +'<button class="admin-btn-icon edit" onclick="moveProductOrder(\''+p.id+'\',1)" title="تأخير"'+(isLast?' disabled style="opacity:0.3"':'')+'><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>'
+          +'</div>';
+        h += '<div class="product-card-admin"><img class="product-img" src="'+escapeHtml(p.image)+'" alt="" onerror="this.style.background=\'#1a1a1a\'"><div class="product-body"><div class="product-name">'+escapeHtml(p.name)+'</div><div class="product-prices"><span class="product-price">LE '+Number(p.price||0).toLocaleString('en-US')+'</span>'+(hd?'<span class="product-original">LE '+Number(p.originalPrice).toLocaleString('en-US')+'</span><span class="product-discount">-'+dp+'%</span>':'')+'</div><div class="product-category">'+escapeHtml(cn)+'</div><div class="product-actions">'+orderBtns+'<button class="admin-btn-icon edit" onclick="showProductForm(\''+p.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteProduct(\''+p.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
       });
       list.innerHTML = h;
     }
     function filterAdminProducts(v) { renderProductList(v); }
+    function moveProductOrder(id, dir) {
+      var prods = data.products || [];
+      var sorted = prods.slice().sort(function(a,b){ return (a.order||0) - (b.order||0); });
+      var idx = sorted.findIndex(function(p){return p.id===id;});
+      if (idx < 0) return;
+      var newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= sorted.length) return;
+      // swap order values
+      var tmpOrder = sorted[idx].order || idx;
+      sorted[idx].order = sorted[newIdx].order || newIdx;
+      sorted[newIdx].order = tmpOrder;
+      // write back to data.products
+      sorted.forEach(function(p) {
+        var oi = data.products.findIndex(function(x){return x.id===p.id;});
+        if (oi !== -1) data.products[oi].order = p.order;
+      });
+      saveData(); renderProductList(document.getElementById('adminProductFilter').value); renderProductSections();
+    }
+    function handleProductImageUpload(e) {
+      var f = e.target.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(ev) {
+        document.getElementById('productImage').value = ev.target.result;
+        document.getElementById('productImagePreview').innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+      };
+      r.readAsDataURL(f);
+    }
     function showProductForm(id) {
       var m = document.getElementById('productModalOverlay');
+      var cats = data.categories || [];
+      // populate category dropdown
+      var catSelect = document.getElementById('productCategory');
+      catSelect.innerHTML = cats.map(function(c){ return '<option value="'+c.id+'">'+c.titleAr+'</option>'; }).join('');
+      // reset preview
+      document.getElementById('productImagePreview').innerHTML = '<svg width="24" height="24" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+      document.getElementById('productImageFile').value = '';
       if (id) {
-        var p = (data.products||[]).find(function(x){return x.id===id;}); if (!p) return;
+        var p = data.products.find(function(x){return x.id===id;}); if (!p) return;
         document.getElementById('productModalTitle').textContent = 'تعديل منتج';
         document.getElementById('productEditId').value = p.id;
         document.getElementById('productName').value = p.name||'';
@@ -1742,6 +1792,7 @@
         document.getElementById('productOriginalPrice').value = p.originalPrice||'';
         document.getElementById('productImage').value = p.image||'';
         document.getElementById('productCategory').value = p.category||'';
+        if (p.image) document.getElementById('productImagePreview').innerHTML = '<img src="'+p.image+'" style="width:100%;height:100%;object-fit:cover">';
       } else {
         document.getElementById('productModalTitle').textContent = 'إضافة منتج';
         document.getElementById('productEditId').value = '';
@@ -1749,7 +1800,7 @@
         document.getElementById('productPrice').value = '';
         document.getElementById('productOriginalPrice').value = '';
         document.getElementById('productImage').value = '';
-        var cats = data.categories||[]; document.getElementById('productCategory').value = cats.length ? cats[0].id : '';
+        catSelect.value = cats.length ? cats[0].id : '';
       }
       m.classList.add('active');
     }
@@ -1759,12 +1810,85 @@
       var eid = document.getElementById('productEditId').value;
       var obj = { name: document.getElementById('productName').value.trim(), price: parseFloat(document.getElementById('productPrice').value)||0, originalPrice: parseFloat(document.getElementById('productOriginalPrice').value)||0, image: document.getElementById('productImage').value.trim(), category: document.getElementById('productCategory').value };
       if (!obj.name) { alert('يرجى إدخال اسم المنتج'); return; }
+      if (!obj.image) { alert('يرجى إدخال رابط الصورة أو رفع صورة'); return; }
       if (obj.originalPrice <= 0) obj.originalPrice = 0;
       if (eid) { var idx = data.products.findIndex(function(p){return p.id===eid;}); if (idx!==-1) data.products[idx] = Object.assign({}, data.products[idx], obj); }
-      else { obj.id = 'p'+Date.now(); data.products.push(obj); }
+      else { obj.id = 'p'+Date.now(); obj.order = data.products.length; data.products.push(obj); }
       saveData(); hideProductForm(); renderAdminProducts(); renderAll();
     }
     function deleteProduct(id) { if (!confirm('حذف هذا المنتج؟')) return; data.products = (data.products||[]).filter(function(p){return p.id!==id;}); saveData(); renderAdminProducts(); renderAll(); }
+
+    // Categories
+    function renderAdminCategories() {
+      var list = document.getElementById('adminCategoriesList'); var cats = data.categories || [];
+      if (!cats.length) { list.innerHTML = '<div class="admin-empty"><p>لا توجد تصنيفات</p></div>'; return; }
+      var h = '';
+      cats.forEach(function(c, idx) {
+        var pc = (data.products||[]).filter(function(p){return p.category===c.id;}).length;
+        var isFirst = idx === 0, isLast = idx === cats.length - 1;
+        var orderBtns = '<div style="display:flex;flex-direction:column;gap:2px;margin-left:0.35rem">'
+          +'<button class="admin-btn-icon edit" onclick="moveCategoryOrder(\''+c.id+'\',-1)" title="تقديم"'+(isFirst?' disabled style="opacity:0.3"':'')+'><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>'
+          +'<button class="admin-btn-icon edit" onclick="moveCategoryOrder(\''+c.id+'\',1)" title="تأخير"'+(isLast?' disabled style="opacity:0.3"':'')+'><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>'
+          +'</div>';
+        h += '<div class="admin-list-item"><div style="width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#1a1a1a"><img src="'+escapeHtml(c.image)+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'"></div><div class="item-info"><div class="item-name">'+escapeHtml(c.titleAr)+' <span style="color:#888;font-weight:400;font-size:0.8rem">'+escapeHtml(c.titleEn)+'</span></div><div class="item-detail">'+pc+' منتج'+(pc!==1?'ات':'')+'</div></div><div class="item-actions">'+orderBtns+'<button class="admin-btn-icon edit" onclick="showCategoryForm(\''+c.id+'\')" title="تعديل"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="admin-btn-icon delete" onclick="deleteCategory(\''+c.id+'\')" title="حذف"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div>';
+      });
+      list.innerHTML = h;
+    }
+    function moveCategoryOrder(id, dir) {
+      var cats = data.categories || [];
+      var idx = cats.findIndex(function(c){return c.id===id;});
+      if (idx < 0) return;
+      var newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= cats.length) return;
+      var tmp = cats[idx];
+      cats[idx] = cats[newIdx];
+      cats[newIdx] = tmp;
+      saveData(); renderAdminCategories(); renderAll();
+    }
+    function handleCategoryImageUpload(e) {
+      var f = e.target.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(ev) {
+        document.getElementById('categoryImage').value = ev.target.result;
+        document.getElementById('categoryImagePreview').innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+      };
+      r.readAsDataURL(f);
+    }
+    function showCategoryForm(id) {
+      var m = document.getElementById('categoryModalOverlay');
+      document.getElementById('categoryImagePreview').innerHTML = '<svg width="24" height="24" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+      document.getElementById('categoryImageFile').value = '';
+      if (id) {
+        var c = (data.categories||[]).find(function(x){return x.id===id;}); if (!c) return;
+        document.getElementById('categoryModalTitle').textContent = 'تعديل تصنيف';
+        document.getElementById('categoryEditId').value = c.id;
+        document.getElementById('categoryTitleAr').value = c.titleAr||'';
+        document.getElementById('categoryTitleEn').value = c.titleEn||'';
+        document.getElementById('categoryDescAr').value = c.descriptionAr||'';
+        document.getElementById('categoryImage').value = c.image||'';
+        if (c.image) document.getElementById('categoryImagePreview').innerHTML = '<img src="'+c.image+'" style="width:100%;height:100%;object-fit:cover">';
+      } else {
+        document.getElementById('categoryModalTitle').textContent = 'إضافة تصنيف';
+        document.getElementById('categoryEditId').value = '';
+        document.getElementById('categoryTitleAr').value = '';
+        document.getElementById('categoryTitleEn').value = '';
+        document.getElementById('categoryDescAr').value = '';
+        document.getElementById('categoryImage').value = '';
+      }
+      m.classList.add('active');
+    }
+    function hideCategoryForm() { document.getElementById('categoryModalOverlay').classList.remove('active'); }
+    function saveCategory() {
+      if (!data.categories) data.categories = [];
+      var eid = document.getElementById('categoryEditId').value;
+      var obj = { titleAr: document.getElementById('categoryTitleAr').value.trim(), titleEn: document.getElementById('categoryTitleEn').value.trim(), descriptionAr: document.getElementById('categoryDescAr').value.trim(), image: document.getElementById('categoryImage').value.trim() };
+      if (!obj.titleAr) { alert('يرجى إدخال اسم التصنيف'); return; }
+      if (!obj.image) { alert('يرجى إدخال رابط الصورة أو رفع صورة'); return; }
+      if (eid) { var idx = data.categories.findIndex(function(c){return c.id===eid;}); if (idx!==-1) data.categories[idx] = Object.assign({}, data.categories[idx], obj); }
+      else { obj.id = 'cat_'+Date.now(); data.categories.push(obj); }
+      saveData(); hideCategoryForm(); renderAdminCategories(); renderAll();
+    }
+    function deleteCategory(id) { if (!confirm('حذف هذا التصنيف؟ سيبقى المنتجات التابعة له بدون تصنيف.')) return; data.categories = (data.categories||[]).filter(function(c){return c.id!==id;}); saveData(); renderAdminCategories(); renderAll(); }
 
     // Announcements
     function renderAdminAnnouncements() {
