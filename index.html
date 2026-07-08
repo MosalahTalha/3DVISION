@@ -955,9 +955,7 @@
   <div class="admin-modal-overlay" id="announcementModalOverlay"><div class="admin-modal"><h3 id="announcementModalTitle">إضافة إعلان</h3><input type="hidden" id="announcementEditId"><div class="admin-form-group"><label>نص الإعلان</label><textarea id="announcementText" rows="3" placeholder="نص الإعلان..."></textarea></div><div class="admin-form-group" style="display:flex;align-items:center;gap:0.75rem"><label style="margin:0;cursor:pointer" for="announcementActive">تفعيل</label><label class="toggle-switch"><input type="checkbox" id="announcementActive" checked><span class="toggle-slider"></span></label></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveAnnouncement()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideAnnouncementForm()">إلغاء</button></div></div></div>
 </div>
 
-<!-- Firebase Storage SDK (compat - for image uploads) -->
-  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
+<!-- Firebase config is inline below; all Firebase operations use REST API (no SDK needed) -->
 
   <script>
     // ============ DEFAULT FALLBACK DATA ============
@@ -1070,19 +1068,10 @@
       };
     }
 
-    // ============ FIREBASE CONFIG ============
+    // ============ FIREBASE CONFIG (REST API only — no SDK) ============
     const FIREBASE_DB_URL = 'https://dvision-website-10140-default-rtdb.firebaseio.com';
-    const firebaseConfig = {
-      apiKey: "AIzaSyCtiPMhZZ06riHpIRMVDnramzkx9ei-fFw",
-      authDomain: "dvision-website-10140.firebaseapp.com",
-      databaseURL: "https://dvision-website-10140-default-rtdb.firebaseio.com",
-      projectId: "dvision-website-10140",
-      storageBucket: "dvision-website-10140.firebasestorage.app",
-      messagingSenderId: "971643684488",
-      appId: "1:971643684488:web:48363e0fd0a5f5bba4c13d"
-    };
-    var fbApp, fbStorage;
-    try { fbApp = firebase.initializeApp(firebaseConfig); fbStorage = firebase.storage(); } catch(e) { console.warn('Firebase init failed:', e); }
+    var STORAGE_BUCKET = 'dvision-website-10140.firebasestorage.app';
+    var STORAGE_REST = 'https://firebasestorage.googleapis.com/v0/b/' + STORAGE_BUCKET + '/o';
 
     // ============ IMAGE UPLOAD TO FIREBASE STORAGE ============
     function compressImage(file, maxW, quality) {
@@ -1109,21 +1098,53 @@
 
     async function uploadToFirebaseStorage(file, folder) {
       folder = folder || 'images';
-      if (!fbStorage) {
-        showToast('Firebase Storage غير متاح - تأكد من إعدادات Firebase', 'error');
-        return null;
-      }
+      var path = folder + '/' + Date.now() + '_' + Math.random().toString(36).substr(2, 6) + '.jpg';
+
       try {
-        // Compress first
+        // Step 1: Compress the image
         var compressed = await compressImage(file, 800, 0.75);
-        var path = folder + '/' + Date.now() + '_' + Math.random().toString(36).substr(2, 6) + '.jpg';
-        var ref = fbStorage.ref(path);
-        var snap = await ref.put(compressed, { contentType: 'image/jpeg' });
-        var url = await snap.ref.getDownloadURL();
-        return url;
+        console.log('[BRQ] Image compressed, size:', (compressed.size / 1024).toFixed(1) + 'KB');
+
+        // Step 2: Upload via Firebase Storage REST API (no SDK needed)
+        var uploadUrl = STORAGE_REST + '?uploadType=media&name=' + encodeURIComponent(path);
+        var controller = new AbortController();
+        var timeout = setTimeout(function() { controller.abort(); }, 30000);
+
+        var res = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'image/jpeg' },
+          body: compressed,
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          var result = await res.json();
+          var token = result.downloadTokens;
+          var downloadUrl = STORAGE_REST + '/' + encodeURIComponent(path) + '?alt=media&token=' + token;
+          console.log('[BRQ] Image uploaded to Storage:', downloadUrl);
+          return downloadUrl;
+        } else {
+          var errBody = await res.text().catch(function() { return 'unknown'; });
+          console.error('[BRQ] Storage REST upload failed:', res.status, errBody);
+        }
       } catch(e) {
-        console.error('Storage upload error:', e);
-        showToast('فشل رفع الصورة: ' + e.message, 'error');
+        console.warn('[BRQ] Firebase Storage REST failed (' + e.message + '), falling back to base64...');
+      }
+
+      // Step 3: Fallback — store as base64 data URL in the database (guaranteed to work)
+      try {
+        var small = await compressImage(file, 600, 0.55);
+        var dataUrl = await new Promise(function(resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function(ev) { resolve(ev.target.result); };
+          reader.onerror = function() { reject(new Error('FileReader failed')); };
+          reader.readAsDataURL(small);
+        });
+        console.log('[BRQ] Saved as base64, length:', (dataUrl.length / 1024).toFixed(1) + 'KB');
+        return dataUrl;
+      } catch(e2) {
+        console.error('[BRQ] Base64 fallback also failed:', e2);
         return null;
       }
     }
@@ -1180,56 +1201,65 @@
         return fbGetSection(name);
       }));
 
-      // Check if we got real data from new section paths
+      // Build data from section results, filling missing with defaults
+      data = {
+        settings:       results[0] || defaults.settings,
+        contacts:       results[1] || defaults.contacts,
+        categories:     results[2] || defaults.categories,
+        products:       results[3] || defaults.products,
+        announcements:  results[4] || defaults.announcements,
+        promoBanner:    results[5] || defaults.promoBanner,
+        testimonials:   results[6] || defaults.testimonials,
+        stats:          results[7] || defaults.stats
+      };
+
       var hasSectionData = results.some(function(r) { return r !== null; });
 
       if (hasSectionData) {
-        data = {
-          settings:       results[0] || defaults.settings,
-          contacts:       results[1] || defaults.contacts,
-          categories:     results[2] || defaults.categories,
-          products:       results[3] || defaults.products,
-          announcements:  results[4] || defaults.announcements,
-          promoBanner:    results[5] || defaults.promoBanner,
-          testimonials:   results[6] || defaults.testimonials,
-          stats:          results[7] || defaults.stats
-        };
         updateSyncUI('connected', 'متصل ✓');
         console.log('[BRQ] Loaded from Firebase (parallel, ' + SECTIONS.length + ' sections)');
-      } else {
-        // No section data — check if old /data.json exists and migrate it
-        console.log('[BRQ] No section data found, checking for old /data.json...');
+      }
+
+      // ALWAYS check old /data.json to recover any missing sections
+      // This preserves old data even if new sections already partially exist
+      try {
         var oldData = await fbGetSection('data');
         if (oldData && typeof oldData === 'object') {
-          // Migrate old data to new section structure
-          console.log('[BRQ] Found old /data.json — migrating to sections...');
-          data = {
-            settings:      oldData.settings      || defaults.settings,
-            contacts:      oldData.contacts      || defaults.contacts,
-            categories:    oldData.categories    || defaults.categories,
-            products:      oldData.products      || defaults.products,
-            announcements: oldData.announcements || defaults.announcements,
-            promoBanner:   oldData.promoBanner   || defaults.promoBanner,
-            testimonials:  oldData.testimonials  || defaults.testimonials,
-            stats:         oldData.stats         || defaults.stats
-          };
-          // Write each section to its own path
-          await Promise.all(SECTIONS.map(function(name) {
-            return fbPutSection(name, data[name]);
-          }));
-          // Delete old /data.json to clean up
-          try { await fetch(FIREBASE_DB_URL + '/data.json', { method: 'DELETE' }); } catch(e) {}
-          updateSyncUI('connected', 'متصل ✓ (تم ترحيل البيانات القديمة)');
-          showToast('تم ترحيل البيانات القديمة للهيكل الجديد ✓', 'success');
-        } else {
-          // Firebase empty or blocked — use defaults
-          data = defaults;
-          updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
-          console.log('[BRQ] Firebase unavailable, using defaults');
-          initializeFirebase().then(function(ok) {
-            if (ok) updateSyncUI('connected', 'متصل ✓');
+          var migrated = false;
+          SECTIONS.forEach(function(name, idx) {
+            // If a section is null/missing AND old data has it → recover it
+            if (results[idx] === null && oldData[name] && typeof oldData[name] !== 'undefined') {
+              data[name] = oldData[name];
+              migrated = true;
+              console.log('[BRQ] Recovered section "' + name + '" from old /data.json');
+            }
           });
+          if (migrated) {
+            // Save recovered sections to their new paths
+            await Promise.all(SECTIONS.filter(function(name, idx) {
+              return results[idx] === null && oldData[name];
+            }).map(function(name) {
+              return fbPutSection(name, data[name]);
+            }));
+            console.log('[BRQ] Migrated recovered sections to new paths');
+            if (!hasSectionData) {
+              showToast('تم ترحيل البيانات القديمة للهيكل الجديد ✓', 'success');
+              updateSyncUI('connected', 'متصل ✓ (تم ترحيل البيانات القديمة)');
+            }
+          }
         }
+      } catch(e) {
+        console.warn('[BRQ] Old data check failed (non-critical):', e);
+      }
+
+      // If still no data at all, use defaults and initialize
+      if (!hasSectionData) {
+        data = defaults;
+        updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
+        console.log('[BRQ] Firebase unavailable, using defaults');
+        initializeFirebase().then(function(ok) {
+          if (ok) updateSyncUI('connected', 'متصل ✓');
+        });
       }
 
       // Ensure required fields
@@ -2126,7 +2156,7 @@
         preview.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
       };
       reader.readAsDataURL(f);
-      showToast('تم اختيار الصورة — اضغط حفظ لرفعها وحفظ المنتج', 'info');
+      showToast('تم اختيار الصورة ✓ — اضغط "حفظ" لرفعها وحفظ المنتج', 'info');
     }
     function showProductForm(id) {
       var m = document.getElementById('productModalOverlay');
@@ -2169,17 +2199,24 @@
         var saveBtn = document.querySelector('#productModalOverlay .admin-btn-primary');
         if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'جاري رفع الصورة...'; }
         showToast('جاري رفع الصورة...', 'info');
-        var uploadedUrl = await uploadToFirebaseStorage(pendingProductUpload, 'products');
+        try {
+          var uploadedUrl = await uploadToFirebaseStorage(pendingProductUpload, 'products');
+        } catch(uploadErr) {
+          console.error('[BRQ] Upload exception:', uploadErr);
+        }
         pendingProductUpload = null;
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'حفظ'; }
         if (uploadedUrl) {
           urlInput.value = uploadedUrl;
-          // Update preview to show the Firebase URL version
           document.getElementById('productImagePreview').innerHTML = '<img src="'+uploadedUrl+'" style="width:100%;height:100%;object-fit:cover">';
-          showToast('تم رفع الصورة بنجاح ✓', 'success');
+          if (uploadedUrl.startsWith('data:')) {
+            showToast('تم حفظ الصورة محلياً — استخدم أداة تنظيف الصور لاحقاً ✓', 'info');
+          } else {
+            showToast('تم رفع الصورة بنجاح ✓', 'success');
+          }
         } else {
-          showToast('فشل رفع الصورة — تأكد من إعدادات Firebase Storage', 'error');
-          return; // Stop — don't save without image
+          showToast('فشل رفع الصورة — جرب مرة أخرى', 'error');
+          return;
         }
       }
 
@@ -2267,15 +2304,23 @@
         var saveBtn = document.querySelector('#categoryModalOverlay .admin-btn-primary');
         if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'جاري رفع الصورة...'; }
         showToast('جاري رفع الصورة...', 'info');
-        var uploadedUrl = await uploadToFirebaseStorage(pendingCategoryUpload, 'categories');
+        try {
+          var uploadedUrl = await uploadToFirebaseStorage(pendingCategoryUpload, 'categories');
+        } catch(uploadErr) {
+          console.error('[BRQ] Upload exception:', uploadErr);
+        }
         pendingCategoryUpload = null;
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'حفظ'; }
         if (uploadedUrl) {
           urlInput.value = uploadedUrl;
           document.getElementById('categoryImagePreview').innerHTML = '<img src="'+uploadedUrl+'" style="width:100%;height:100%;object-fit:cover">';
-          showToast('تم رفع الصورة بنجاح ✓', 'success');
+          if (uploadedUrl.startsWith('data:')) {
+            showToast('تم حفظ الصورة محلياً — استخدم أداة تنظيف الصور لاحقاً ✓', 'info');
+          } else {
+            showToast('تم رفع الصورة بنجاح ✓', 'success');
+          }
         } else {
-          showToast('فشل رفع الصورة', 'error');
+          showToast('فشل رفع الصورة — جرب مرة أخرى', 'error');
           return;
         }
       }
