@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo.png">
-  <title>برق بنزين | 3D Automotive Art</title>
+  <title>3DVISION store | متجر 3D ڤيچن</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -261,7 +261,7 @@
           <!-- Logo -->
           <div class="flex items-center gap-2 sm:gap-3">
             <img id="navLogo" src="logo.png" alt="برق بنزين" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain">
-            <span id="navBrandName" class="gold-text font-bold text-lg sm:text-xl">برق بنزين</span>
+            <span id="navBrandName" class="gold-text font-bold text-lg sm:text-xl">3DVISION store</span>
           </div>
 
           <!-- Desktop Nav -->
@@ -359,7 +359,7 @@
 
       <div class="relative z-10 text-center px-4 flex flex-col items-center">
         <img id="heroLogo" src="logo.png" alt="برق بنزين" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-contain mb-6 sm:mb-8">
-        <h1 id="heroTitle" class="gold-text text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-3 sm:mb-4">برق بنزين</h1>
+        <h1 id="heroTitle" class="gold-text text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-3 sm:mb-4">3DVISION store</h1>
         <p id="heroSubtitle" class="text-white/50 text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase mb-4 sm:mb-6">3D Automotive Art</p>
         <p class="text-white/60 text-sm sm:text-base md:text-lg max-w-xl mb-8 sm:mb-10 leading-relaxed">
           قطع فنية ثلاثية الأبعاد لسياراتك المفضلة — إطارات، حاملات مفاتيح، وإكسسوارات مميزة
@@ -530,7 +530,7 @@
           <div>
             <div class="flex items-center gap-2 mb-4">
               <img id="footerLogo" src="logo.png" alt="برق بنزين" class="w-8 h-8 rounded-full object-contain">
-              <span id="footerBrandName" class="gold-text font-bold text-lg">برق بنزين</span>
+              <span id="footerBrandName" class="gold-text font-bold text-lg">3DVISION store</span>
             </div>
             <p class="text-white/40 text-sm leading-relaxed">قطع فنية ثلاثية الأبعاد لسياراتك المفضلة. إطارات، حاملات مفاتيح، وإكسسوارات مميزة بجودة عالية.</p>
           </div>
@@ -954,13 +954,17 @@
   <div class="admin-modal-overlay" id="announcementModalOverlay"><div class="admin-modal"><h3 id="announcementModalTitle">إضافة إعلان</h3><input type="hidden" id="announcementEditId"><div class="admin-form-group"><label>نص الإعلان</label><textarea id="announcementText" rows="3" placeholder="نص الإعلان..."></textarea></div><div class="admin-form-group" style="display:flex;align-items:center;gap:0.75rem"><label style="margin:0;cursor:pointer" for="announcementActive">تفعيل</label><label class="toggle-switch"><input type="checkbox" id="announcementActive" checked><span class="toggle-slider"></span></label></div><div class="modal-actions"><button class="admin-btn admin-btn-primary" onclick="saveAnnouncement()">حفظ</button><button class="admin-btn admin-btn-secondary" onclick="hideAnnouncementForm()">إلغاء</button></div></div></div>
 </div>
 
+<!-- Firebase Storage SDK (compat - for image uploads) -->
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
+
   <script>
     // ============ DEFAULT FALLBACK DATA ============
     function getDefaultFallbackData() {
       return {
         settings: {
-          siteName: "برق بنزين",
-          siteNameEn: "3D Automotive Art",
+          siteName: "3DVISION store",
+          siteNameEn: "متجر 3D ڤيچن",
           logo: null,
           defaultTheme: "dark"
         },
@@ -1067,6 +1071,61 @@
 
     // ============ FIREBASE CONFIG ============
     const FIREBASE_DB_URL = 'https://dvision-website-10140-default-rtdb.firebaseio.com';
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtiPMhZZ06riHpIRMVDnramzkx9ei-fFw",
+      authDomain: "dvision-website-10140.firebaseapp.com",
+      databaseURL: "https://dvision-website-10140-default-rtdb.firebaseio.com",
+      projectId: "dvision-website-10140",
+      storageBucket: "dvision-website-10140.firebasestorage.app",
+      messagingSenderId: "971643684488",
+      appId: "1:971643684488:web:48363e0fd0a5f5bba4c13d"
+    };
+    var fbApp, fbStorage;
+    try { fbApp = firebase.initializeApp(firebaseConfig); fbStorage = firebase.storage(); } catch(e) { console.warn('Firebase init failed:', e); }
+
+    // ============ IMAGE UPLOAD TO FIREBASE STORAGE ============
+    function compressImage(file, maxW, quality) {
+      return new Promise(function(resolve) {
+        maxW = maxW || 800; quality = quality || 0.8;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          var img = new Image();
+          img.onload = function() {
+            var w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            canvas.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', quality);
+          };
+          img.onerror = function() { resolve(file); };
+          img.src = ev.target.result;
+        };
+        reader.onerror = function() { resolve(file); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadToFirebaseStorage(file, folder) {
+      folder = folder || 'images';
+      if (!fbStorage) {
+        showToast('Firebase Storage غير متاح - تأكد من إعدادات Firebase', 'error');
+        return null;
+      }
+      try {
+        // Compress first
+        var compressed = await compressImage(file, 800, 0.75);
+        var path = folder + '/' + Date.now() + '_' + Math.random().toString(36).substr(2, 6) + '.jpg';
+        var ref = fbStorage.ref(path);
+        var snap = await ref.put(compressed, { contentType: 'image/jpeg' });
+        var url = await snap.ref.getDownloadURL();
+        return url;
+      } catch(e) {
+        console.error('Storage upload error:', e);
+        showToast('فشل رفع الصورة: ' + e.message, 'error');
+        return null;
+      }
+    }
 
     // ============ GLOBAL DATA ============
     let data = null;
@@ -1150,7 +1209,7 @@
       if (!data.testimonials) data.testimonials = [];
       if (!data.announcements) data.announcements = [];
       if (!data.promoBanner) data.promoBanner = { text: "", active: false };
-      if (!data.settings) data.settings = { siteName: "برق بنزين", siteNameEn: "3D Automotive Art", logo: null, defaultTheme: "dark" };
+      if (!data.settings) data.settings = { siteName: "3DVISION store", siteNameEn: "متجر 3D ڤيچن", logo: null, defaultTheme: "dark" };
       if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {} };
       if (!data.stats.dailyVisits) data.stats.dailyVisits = {};
 
@@ -1316,7 +1375,7 @@
 
     // ============ RENDER: SITE BRANDING ============
     function renderBranding() {
-      const siteName = (data.settings && data.settings.siteName) || 'برق بنزين';
+      const siteName = (data.settings && data.settings.siteName) || '3DVISION store';
       const siteNameEn = (data.settings && data.settings.siteNameEn) || '3D Automotive Art';
       const logo = (data.settings && data.settings.logo) || null;
       const logoSrc = logo || 'logo.png';
@@ -1782,7 +1841,7 @@
     // Settings
     function renderAdminSettings() {
       var s = data.settings || {};
-      document.getElementById('settingSiteName').value = s.siteName || 'برق بنزين';
+      document.getElementById('settingSiteName').value = s.siteName || '3DVISION store';
       document.getElementById('settingSiteNameEn').value = s.siteNameEn || '3D Automotive Art';
       document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
       var preview = document.getElementById('logoPreviewArea');
@@ -1791,23 +1850,31 @@
     }
     function saveSettings() {
       if (!data.settings) data.settings = {};
-      data.settings.siteName = document.getElementById('settingSiteName').value.trim() || 'برق بنزين';
-      data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || '3D Automotive Art';
+      data.settings.siteName = document.getElementById('settingSiteName').value.trim() || '3DVISION store';
+      data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || 'متجر 3D ڤيچن';
       data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
       saveData();
       renderBranding();
     }
     function handleLogoUpload(e) {
       var f = e.target.files[0]; if (!f) return;
-      var r = new FileReader();
-      r.onload = function(ev) {
-        if (!data.settings) data.settings = {};
-        data.settings.logo = ev.target.result;
-        saveData();
-        renderBranding();
-        renderAdminSettings();
+      var preview = document.getElementById('logoPreviewArea');
+      var localReader = new FileReader();
+      localReader.onload = function(ev) {
+        preview.innerHTML = '<img src="'+ev.target.result+'" alt="Logo" style="max-width:60px;max-height:60px;object-fit:contain">';
       };
-      r.readAsDataURL(f);
+      localReader.readAsDataURL(f);
+      showToast('جاري رفع الشعار...', 'info');
+      uploadToFirebaseStorage(f, 'logos').then(function(url) {
+        if (url) {
+          if (!data.settings) data.settings = {};
+          data.settings.logo = url;
+          saveData();
+          renderBranding();
+          renderAdminSettings();
+          showToast('تم رفع الشعار بنجاح ✓', 'success');
+        }
+      });
     }
     function removeLogo() {
       if (!data.settings) data.settings = {};
@@ -1911,12 +1978,22 @@
     }
     function handleProductImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
-      var r = new FileReader();
-      r.onload = function(ev) {
-        document.getElementById('productImage').value = ev.target.result;
-        document.getElementById('productImagePreview').innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+      var preview = document.getElementById('productImagePreview');
+      // Show local preview immediately
+      var localReader = new FileReader();
+      localReader.onload = function(ev) {
+        preview.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
       };
-      r.readAsDataURL(f);
+      localReader.readAsDataURL(f);
+      // Upload to Firebase Storage in background
+      showToast('جاري رفع الصورة...', 'info');
+      uploadToFirebaseStorage(f, 'products').then(function(url) {
+        if (url) {
+          document.getElementById('productImage').value = url;
+          preview.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
+          showToast('تم رفع الصورة بنجاح ✓', 'success');
+        }
+      });
     }
     function showProductForm(id) {
       var m = document.getElementById('productModalOverlay');
@@ -1991,12 +2068,20 @@
     }
     function handleCategoryImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
-      var r = new FileReader();
-      r.onload = function(ev) {
-        document.getElementById('categoryImage').value = ev.target.result;
-        document.getElementById('categoryImagePreview').innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+      var preview = document.getElementById('categoryImagePreview');
+      var localReader = new FileReader();
+      localReader.onload = function(ev) {
+        preview.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
       };
-      r.readAsDataURL(f);
+      localReader.readAsDataURL(f);
+      showToast('جاري رفع الصورة...', 'info');
+      uploadToFirebaseStorage(f, 'categories').then(function(url) {
+        if (url) {
+          document.getElementById('categoryImage').value = url;
+          preview.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
+          showToast('تم رفع الصورة بنجاح ✓', 'success');
+        }
+      });
     }
     function showCategoryForm(id) {
       var m = document.getElementById('categoryModalOverlay');
