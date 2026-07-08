@@ -910,7 +910,7 @@
         <a class="nav-item" data-tab="promo" onclick="switchAdminTab('promo')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>بانر العروض</a>
       </nav>
       <div class="admin-content">
-        <div id="adminTabDashboard" class="admin-tab-content"><div class="stat-grid" id="adminStatsGrid"></div><div style="margin-top:1rem"><button class="admin-btn admin-btn-primary" onclick="manualSyncToCloud()" style="display:flex;align-items:center;gap:0.5rem;margin:0 auto"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>مزامنة البيانات مع السحابة (Firebase)</button><p style="text-align:center;font-size:0.75rem;color:#888;margin-top:0.5rem">اضغط لدفع جميع البيانات الحالية إلى Firebase ليتمكن جميع المستخدمين من رؤيتها</p></div><div class="daily-visits" id="adminDailyVisits"></div></div>
+        <div id="adminTabDashboard" class="admin-tab-content"><div class="stat-grid" id="adminStatsGrid"></div><div style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap"><button class="admin-btn admin-btn-primary" onclick="manualSyncToCloud()" style="display:flex;align-items:center;gap:0.5rem"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>مزامنة مع السحابة</button><button class="admin-btn" onclick="cleanBase64Images()" style="display:flex;align-items:center;gap:0.5rem;border:1px solid #e2b04a;color:#e2b04a" id="cleanBase64Btn"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>تنظيف الصور الثقيلة (base64 → روابط)</button></div><p id="cleanBase64Status" style="text-align:center;font-size:0.75rem;color:#888;margin-top:0.5rem"></p><div class="daily-visits" id="adminDailyVisits"></div></div>
         <div id="adminTabSettings" class="admin-tab-content" style="display:none">
           <div class="section-header"><h2>إعدادات الموقع</h2></div>
           <div style="max-width:600px">
@@ -1131,11 +1131,14 @@
     // ============ GLOBAL DATA ============
     let data = null;
     const FALLBACK_WHATSAPP = "https://api.whatsapp.com/send/?phone=201055190003";
-    let syncState = 'offline'; // 'connected' | 'syncing' | 'error' | 'offline'
-    let pendingProductUpload = null; // Promise tracking for product image upload
-    let pendingCategoryUpload = null; // Promise tracking for category image upload
+    let syncState = 'offline';
+    let pendingProductUpload = null;
+    let pendingCategoryUpload = null;
 
-    // ============ FIREBASE REST API ============
+    // Firebase section paths
+    var SECTIONS = ['settings','contacts','categories','products','announcements','promoBanner','testimonials','stats'];
+
+    // ============ FIREBASE REST — DIRECT SECTION READ/WRITE ============
     function updateSyncUI(state, label) {
       syncState = state;
       var el = document.getElementById('syncStatus');
@@ -1145,93 +1148,176 @@
       lbl.textContent = label || '';
     }
 
-    async function firebaseGetData() {
+    // Fetch one section from Firebase
+    async function fbGetSection(name) {
       try {
-        var res = await fetch(FIREBASE_DB_URL + '/data.json');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var res = await fetch(FIREBASE_DB_URL + '/' + name + '.json');
+        if (!res.ok) return null;
         var json = await res.json();
-        if (json && typeof json === 'object' && !json.error) return json;
-        return null;
-      } catch(e) {
-        console.warn('Firebase GET failed:', e.message);
-        return null;
-      }
+        return (json !== null && typeof json === 'object') ? json : null;
+      } catch(e) { return null; }
     }
 
-    async function firebasePushData(dataToSync) {
-      updateSyncUI('syncing', 'جاري المزامنة...');
+    // PUT one section to Firebase (tiny payload, instant)
+    async function fbPutSection(name, value) {
       try {
-        var res = await fetch(FIREBASE_DB_URL + '/data.json', {
+        var res = await fetch(FIREBASE_DB_URL + '/' + name + '.json', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dataToSync)
+          body: JSON.stringify(value)
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        updateSyncUI('connected', 'متزامن ✓');
-        return true;
-      } catch(e) {
-        console.error('Firebase PUT failed:', e.message);
-        updateSyncUI('error', 'خطأ في المزامنة ✗');
-        return false;
-      }
+        return res.ok;
+      } catch(e) { return false; }
     }
 
-    // ============ LOAD DATA (ASYNC - Firebase first) ============
+    // ============ LOAD — ALL SECTIONS IN PARALLEL ============
     async function loadData() {
-      // Try Firebase first
-      var cloudData = await firebaseGetData();
-      if (cloudData) {
-        data = cloudData;
-        // Also update localStorage as cache
-        try { localStorage.setItem('brq_data', JSON.stringify(data)); } catch(e) {}
-        updateSyncUI('connected', 'متصل بـ Firebase ✓');
-        console.log('[BRQ] Data loaded from Firebase');
+      var defaults = getDefaultFallbackData();
+      updateSyncUI('syncing', 'جاري التحميل...');
+
+      // Fetch all 8 sections simultaneously
+      var results = await Promise.all(SECTIONS.map(function(name) {
+        return fbGetSection(name);
+      }));
+
+      // Check if we got real data (at least settings or products exist)
+      var hasData = results.some(function(r) { return r !== null; });
+
+      if (hasData) {
+        data = {
+          settings:       results[0] || defaults.settings,
+          contacts:       results[1] || defaults.contacts,
+          categories:     results[2] || defaults.categories,
+          products:       results[3] || defaults.products,
+          announcements:  results[4] || defaults.announcements,
+          promoBanner:    results[5] || defaults.promoBanner,
+          testimonials:   results[6] || defaults.testimonials,
+          stats:          results[7] || defaults.stats
+        };
+        updateSyncUI('connected', 'متصل ✓');
+        console.log('[BRQ] Loaded from Firebase (parallel, ' + SECTIONS.length + ' sections)');
       } else {
-        // Fall back to localStorage
-        try {
-          var stored = localStorage.getItem('brq_data');
-          if (stored) {
-            data = JSON.parse(stored);
-            updateSyncUI('error', 'غير متصل بالسحابة');
-            console.log('[BRQ] Data loaded from localStorage (Firebase unavailable)');
-          } else {
-            data = getDefaultFallbackData();
-            updateSyncUI('offline', 'بيانات افتراضية');
-            console.log('[BRQ] Using default fallback data');
-          }
-        } catch (e) {
-          data = getDefaultFallbackData();
-          updateSyncUI('offline', 'بيانات افتراضية');
-        }
+        // Firebase empty or blocked — use defaults, push them once
+        data = defaults;
+        updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
+        console.log('[BRQ] Firebase unavailable, using defaults');
+        // Try to initialize Firebase with defaults in background
+        initializeFirebase().then(function(ok) {
+          if (ok) updateSyncUI('connected', 'متصل ✓');
+        });
       }
 
-      // Ensure required arrays exist
-      if (!data.products) data.products = [];
-      if (!data.categories) data.categories = [];
-      if (!data.contacts) data.contacts = [];
-      if (!data.testimonials) data.testimonials = [];
-      if (!data.announcements) data.announcements = [];
-      if (!data.promoBanner) data.promoBanner = { text: "", active: false };
-      if (!data.settings) data.settings = { siteName: "3DVISION store", siteNameEn: "متجر 3D ڤيچن", logo: null, defaultTheme: "dark" };
-      if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {} };
+      // Ensure required fields
+      if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {}, productClicks: {} };
       if (!data.stats.dailyVisits) data.stats.dailyVisits = {};
+      if (!data.stats.productClicks) data.stats.productClicks = {};
 
       return data;
     }
 
-    // ============ VISITOR TRACKING ============
+    // First-time setup: write all default sections to Firebase
+    async function initializeFirebase() {
+      var sections = ['settings','contacts','categories','products','announcements','promoBanner','testimonials'];
+      var results = await Promise.all(sections.map(function(name) {
+        return fbPutSection(name, data[name]);
+      }));
+      return results.every(function(r) { return r; });
+    }
+
+    // ============ SAVE — DIRECT PUT TO SECTION (NO LOCALSTORAGE) ============
+    var _saveTimers = {};  // per-section debounce timers
+
+    function saveData(section) {
+      if (!section) return;
+      // If array of sections, save each
+      if (Array.isArray(section)) {
+        section.forEach(function(s) { _saveSection(s); });
+        return;
+      }
+      _saveSection(section);
+    }
+
+    function _saveSection(name) {
+      if (name === 'stats') {
+        _saveStats();
+        return;
+      }
+      var val = data[name];
+      if (val === undefined) return;
+
+      // Cancel previous timer for this section
+      if (_saveTimers[name]) clearTimeout(_saveTimers[name]);
+      updateSyncUI('syncing', 'جاري الحفظ...');
+
+      // Debounce 800ms per section
+      _saveTimers[name] = setTimeout(function() {
+        delete _saveTimers[name];
+        fbPutSection(name, val).then(function(ok) {
+          if (ok) {
+            updateSyncUI('connected', 'متصل ✓');
+            console.log('[BRQ] Saved: ' + name + ' (' + JSON.stringify(val).length + ' bytes)');
+          } else {
+            updateSyncUI('error', 'خطأ ✗');
+            showToast('فشل حفظ: ' + name, 'error');
+          }
+        });
+      }, 800);
+    }
+
+    // ============ STATS — HEAVILY DEBOUNCED (5s batch) ============
+    var _statsTimer = null;
+
+    function _saveStats() {
+      if (_statsTimer) clearTimeout(_statsTimer);
+      _statsTimer = setTimeout(function() {
+        _statsTimer = null;
+        fbPutSection('stats', data.stats).then(function(ok) {
+          if (!ok) console.warn('[BRQ] Stats save failed');
+        });
+      }, 5000);
+    }
+
     function trackVisitor() {
       try {
-        const stored = localStorage.getItem('brq_data');
-        if (stored) {
-          data.stats.visitorCount = (data.stats.visitorCount || 0) + 1;
-          const today = new Date().toISOString().split('T')[0];
-          data.stats.dailyVisits[today] = (data.stats.dailyVisits[today] || 0) + 1;
-          localStorage.setItem('brq_data', JSON.stringify(data));
+        if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {}, productClicks: {} };
+        data.stats.visitorCount = (data.stats.visitorCount || 0) + 1;
+        var today = new Date().toISOString().split('T')[0];
+        data.stats.dailyVisits[today] = (data.stats.dailyVisits[today] || 0) + 1;
+        _saveStats();
+      } catch (e) {}
+    }
+
+    function trackProductClick(productId) {
+      try {
+        if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {}, productClicks: {} };
+        if (!data.stats.productClicks) data.stats.productClicks = {};
+        data.stats.productClicks[productId] = (data.stats.productClicks[productId] || 0) + 1;
+        _saveStats();
+      } catch (e) {}
+    }
+
+    // ============ MANUAL SYNC ============
+    function forceSyncNow() {
+      // Cancel all pending saves
+      SECTIONS.forEach(function(name) {
+        if (_saveTimers[name]) { clearTimeout(_saveTimers[name]); delete _saveTimers[name]; }
+      });
+      if (_statsTimer) { clearTimeout(_statsTimer); _statsTimer = null; }
+
+      updateSyncUI('syncing', 'جاري الرفع...');
+      // Save all sections in parallel
+      Promise.all(SECTIONS.map(function(name) {
+        return fbPutSection(name, data[name]);
+      })).then(function(results) {
+        var ok = results.every(function(r) { return r; });
+        if (ok) {
+          updateSyncUI('connected', 'متصل ✓');
+          showToast('تمت المزامنة بنجاح ✓', 'success');
+        } else {
+          updateSyncUI('error', 'خطأ ✗');
+          showToast('فشلت المزامنة - تأكد من قواعد Firebase', 'error');
         }
-      } catch (e) {
-        // Silently fail - visitor tracking is best-effort
-      }
+      });
     }
 
     // ============ THEME ============
@@ -1601,6 +1687,8 @@
     function openModalById(id) {
       const product = (data.products || []).find(p => p.id === id);
       if (!product) return;
+      // Track product view (local-only, no cloud sync)
+      trackProductClick(product.id);
       openModal(product);
     }
 
@@ -1698,18 +1786,6 @@
 
     // ============ ADMIN PANEL ============
     const ADMIN_PASSWORD = '857660';
-
-    function saveData() {
-      try { localStorage.setItem('brq_data', JSON.stringify(data)); } catch(e) {}
-      // Push to Firebase in background (don't await, fire and forget with toast)
-      firebasePushData(data).then(function(ok) {
-        if (ok) {
-          showToast('تم الحفظ والمزامنة بنجاح', 'success');
-        } else {
-          showToast('تم الحفظ محلياً - فشلت المزامنة مع السحابة', 'error');
-        }
-      });
-    }
 
     function renderAll() {
       renderAnnouncements(); renderPromoBanner(); renderBranding();
@@ -1838,6 +1914,39 @@
       var h = '<h3>الزيارات اليومية (آخر 7 أيام)</h3>';
       if (days.every(function(d){return d.count===0;})) { h += '<div class="admin-empty"><p>لا توجد بيانات زيارات بعد</p></div>'; }
       else { days.forEach(function(d) { var pct = Math.max(2, (d.count/mx)*100); h += '<div class="visit-bar-row"><span class="visit-day">'+d.name+'</span><div class="visit-bar-bg"><div class="visit-bar-fill" style="width:'+pct+'%"></div></div><span class="visit-count">'+d.count+'</span></div>'; }); }
+
+      // Top 5 most viewed products
+      var clicks = (data.stats && data.stats.productClicks) || {};
+      var prods = data.products || [];
+      var ranked = [];
+      var clickKeys = Object.keys(clicks);
+      for (var ci = 0; ci < clickKeys.length; ci++) {
+        var pId = clickKeys[ci];
+        var pName = (prods.find(function(p){return p.id===pId;}) || {}).name;
+        if (pName) ranked.push({ id: pId, name: pName, clicks: clicks[pId] });
+      }
+      ranked.sort(function(a,b){ return b.clicks - a.clicks; });
+      ranked = ranked.slice(0, 5);
+
+      h += '<h3 style="margin-top:1.5rem">🔥 أكثر المنتجات طلباً (مشاهدات)</h3>';
+      if (ranked.length === 0) {
+        h += '<div class="admin-empty"><p>لا توجد بيانات مشاهدات بعد</p></div>';
+      } else {
+        var topMax = Math.max(ranked[0].clicks, 1);
+        h += '<div style="display:flex;flex-direction:column;gap:0.5rem">';
+        var medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+        for (var ri = 0; ri < ranked.length; ri++) {
+          var r = ranked[ri];
+          var rpct = Math.max(3, (r.clicks / topMax) * 100);
+          h += '<div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem">'
+            + '<span style="font-size:1rem;min-width:1.5rem;text-align:center">'+medals[ri]+'</span>'
+            + '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%">'+escapeHtml(r.name)+'</span><span style="color:#e2b04a;font-weight:600;flex-shrink:0">'+r.clicks+'</span></div>'
+            + '<div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+rpct+'%;background:linear-gradient(90deg,#e2b04a,#f5d89a);border-radius:3px;transition:width 0.5s"></div></div>'
+            + '</div></div>';
+        }
+        h += '</div>';
+      }
+
       document.getElementById('adminDailyVisits').innerHTML = h;
     }
 
@@ -1856,7 +1965,7 @@
       data.settings.siteName = document.getElementById('settingSiteName').value.trim() || '3DVISION store';
       data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || 'متجر 3D ڤيچن';
       data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
-      saveData();
+      saveData('settings');
       renderBranding();
     }
     function handleLogoUpload(e) {
@@ -1872,7 +1981,7 @@
         if (url) {
           if (!data.settings) data.settings = {};
           data.settings.logo = url;
-          saveData();
+          saveData('settings');
           renderBranding();
           renderAdminSettings();
           showToast('تم رفع الشعار بنجاح ✓', 'success');
@@ -1882,7 +1991,7 @@
     function removeLogo() {
       if (!data.settings) data.settings = {};
       data.settings.logo = null;
-      saveData();
+      saveData('settings');
       document.getElementById('logoFileInput').value = '';
       renderBranding();
       renderAdminSettings();
@@ -1929,9 +2038,9 @@
       if (!obj.platform || !obj.handle) { alert('يرجى ملء المنصة والمعرف'); return; }
       if (eid) { var idx = data.contacts.findIndex(function(c){return c.id===eid;}); if (idx!==-1) data.contacts[idx] = Object.assign({}, data.contacts[idx], obj); }
       else { obj.id = 'c'+Date.now(); data.contacts.push(obj); }
-      saveData(); hideContactForm(); renderAdminContacts(); renderAll();
+      saveData('contacts'); hideContactForm(); renderAdminContacts(); renderAll();
     }
-    function deleteContact(id) { if (!confirm('حذف هذه وسيلة التواصل؟')) return; data.contacts = (data.contacts||[]).filter(function(c){return c.id!==id;}); saveData(); renderAdminContacts(); renderAll(); }
+    function deleteContact(id) { if (!confirm('حذف هذه وسيلة التواصل؟')) return; data.contacts = (data.contacts||[]).filter(function(c){return c.id!==id;}); saveData('contacts'); renderAdminContacts(); renderAll(); }
 
     // Products
     function renderAdminProducts() {
@@ -1977,7 +2086,7 @@
         var oi = data.products.findIndex(function(x){return x.id===p.id;});
         if (oi !== -1) data.products[oi].order = p.order;
       });
-      saveData(); renderProductList(document.getElementById('adminProductFilter').value); renderProductSections();
+      saveData('products'); renderProductList(document.getElementById('adminProductFilter').value); renderProductSections();
     }
     function handleProductImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
@@ -2059,10 +2168,10 @@
       if (obj.originalPrice <= 0) obj.originalPrice = 0;
       if (eid) { var idx = data.products.findIndex(function(p){return p.id===eid;}); if (idx!==-1) data.products[idx] = Object.assign({}, data.products[idx], obj); }
       else { obj.id = 'p'+Date.now(); obj.order = data.products.length; data.products.push(obj); }
-      saveData(); hideProductForm(); renderAdminProducts(); renderAll();
+      saveData('products'); hideProductForm(); renderAdminProducts(); renderAll();
       showToast('تم حفظ المنتج بنجاح ✓', 'success');
     }
-    function deleteProduct(id) { if (!confirm('حذف هذا المنتج؟')) return; data.products = (data.products||[]).filter(function(p){return p.id!==id;}); saveData(); renderAdminProducts(); renderAll(); }
+    function deleteProduct(id) { if (!confirm('حذف هذا المنتج؟')) return; data.products = (data.products||[]).filter(function(p){return p.id!==id;}); saveData('products'); renderAdminProducts(); renderAll(); }
 
     // Categories
     function renderAdminCategories() {
@@ -2089,7 +2198,7 @@
       var tmp = cats[idx];
       cats[idx] = cats[newIdx];
       cats[newIdx] = tmp;
-      saveData(); renderAdminCategories(); renderAll();
+      saveData('categories'); renderAdminCategories(); renderAll();
     }
     function handleCategoryImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
@@ -2160,10 +2269,10 @@
       if (!obj.image) { showToast('يرجى إدخال رابط الصورة أو رفع صورة', 'error'); return; }
       if (eid) { var idx = data.categories.findIndex(function(c){return c.id===eid;}); if (idx!==-1) data.categories[idx] = Object.assign({}, data.categories[idx], obj); }
       else { obj.id = 'cat_'+Date.now(); data.categories.push(obj); }
-      saveData(); hideCategoryForm(); renderAdminCategories(); renderAll();
+      saveData('categories'); hideCategoryForm(); renderAdminCategories(); renderAll();
       showToast('تم حفظ التصنيف بنجاح ✓', 'success');
     }
-    function deleteCategory(id) { if (!confirm('حذف هذا التصنيف؟ سيبقى المنتجات التابعة له بدون تصنيف.')) return; data.categories = (data.categories||[]).filter(function(c){return c.id!==id;}); saveData(); renderAdminCategories(); renderAll(); }
+    function deleteCategory(id) { if (!confirm('حذف هذا التصنيف؟ سيبقى المنتجات التابعة له بدون تصنيف.')) return; data.categories = (data.categories||[]).filter(function(c){return c.id!==id;}); saveData('categories'); renderAdminCategories(); renderAll(); }
 
     // Announcements
     function renderAdminAnnouncements() {
@@ -2200,10 +2309,10 @@
       if (!obj.text) { alert('يرجى إدخال نص الإعلان'); return; }
       if (eid) { var idx = data.announcements.findIndex(function(a){return a.id===eid;}); if (idx!==-1) data.announcements[idx] = Object.assign({}, data.announcements[idx], obj); }
       else { obj.id = 'a'+Date.now(); obj.date = new Date().toISOString(); data.announcements.push(obj); }
-      saveData(); hideAnnouncementForm(); renderAdminAnnouncements(); renderAll();
+      saveData('announcements'); hideAnnouncementForm(); renderAdminAnnouncements(); renderAll();
     }
-    function deleteAnnouncement(id) { if (!confirm('حذف هذا الإعلان؟')) return; data.announcements = (data.announcements||[]).filter(function(a){return a.id!==id;}); saveData(); renderAdminAnnouncements(); renderAll(); }
-    function toggleAnnouncement(id) { var a = (data.announcements||[]).find(function(x){return x.id===id;}); if (a) { a.active = !a.active; saveData(); renderAdminAnnouncements(); renderAll(); } }
+    function deleteAnnouncement(id) { if (!confirm('حذف هذا الإعلان؟')) return; data.announcements = (data.announcements||[]).filter(function(a){return a.id!==id;}); saveData('announcements'); renderAdminAnnouncements(); renderAll(); }
+    function toggleAnnouncement(id) { var a = (data.announcements||[]).find(function(x){return x.id===id;}); if (a) { a.active = !a.active; saveData('announcements'); renderAdminAnnouncements(); renderAll(); } }
 
     // Promo Banner
     function renderAdminPromo() {
@@ -2216,7 +2325,7 @@
       if (!data.promoBanner) data.promoBanner = {};
       data.promoBanner.text = document.getElementById('promoBannerText').value.trim();
       data.promoBanner.active = document.getElementById('promoBannerActive').checked;
-      saveData(); renderPromoPreview(); renderAll(); showToast('تم حفظ البانر بنجاح', 'success');
+      saveData('promoBanner'); renderPromoPreview(); renderAll(); showToast('تم حفظ البانر بنجاح', 'success');
     }
     function renderPromoPreview() {
       var a = document.getElementById('promoPreviewArea'); var pb = data.promoBanner || {};
@@ -2224,17 +2333,83 @@
       else a.innerHTML = '<div class="promo-preview" style="opacity:0.3">'+(escapeHtml(pb.text)||'معاينة البانر ستظهر هنا')+'</div>';
     }
 
-    // ============ TOAST NOTIFICATIONS ============
-    function manualSyncToCloud() {
-      updateSyncUI('syncing', 'جاري الرفع للسحابة...');
-      firebasePushData(data).then(function(ok) {
-        if (ok) {
-          showToast('تم رفع جميع البيانات إلى Firebase بنجاح ✓', 'success');
-        } else {
-          showToast('فشل الرفع - تأكد من قواعد Firebase (Rules) تسمح بالقراءة والكتابة', 'error');
-        }
+    // ============ BASE64 CLEANUP ============
+    async function cleanBase64Images() {
+      var btn = document.getElementById('cleanBase64Btn');
+      var status = document.getElementById('cleanBase64Status');
+      if (!btn || !status) return;
+
+      // Find all base64 images
+      var items = [];
+      (data.products || []).forEach(function(p) {
+        if (p.image && p.image.startsWith('data:image')) items.push({ type: 'product', id: p.id, field: 'image', label: p.name });
       });
+      (data.categories || []).forEach(function(c) {
+        if (c.image && c.image.startsWith('data:image')) items.push({ type: 'category', id: c.id, field: 'image', label: c.titleAr });
+      });
+      if (data.settings && data.settings.logo && data.settings.logo.startsWith('data:image')) {
+        items.push({ type: 'settings', id: null, field: 'logo', label: 'الشعار' });
+      }
+
+      if (items.length === 0) {
+        status.textContent = '✓ لا توجد صور base64 — كل الصور بالفعل روابط خفيفة';
+        status.style.color = '#10b981';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      status.textContent = 'جاري تنظيف ' + items.length + ' صورة...';
+      status.style.color = '#e2b04a';
+
+      var success = 0, failed = 0;
+
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        status.textContent = 'جاري رفع (' + (i + 1) + '/' + items.length + '): ' + item.label + '...';
+
+        try {
+          // Convert base64 to File
+          var res = await fetch(item.field === 'logo' ? data.settings.logo : (item.type === 'product' ? (data.products.find(function(p){return p.id===item.id;})||{}).image : (data.categories.find(function(c){return c.id===item.id;})||{}).image));
+          var blob = await res.blob();
+          var file = new File([blob], 'cleanup_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+
+          var url = await uploadToFirebaseStorage(file, item.type === 'product' ? 'products' : item.type === 'category' ? 'categories' : 'logos');
+          if (url) {
+            if (item.type === 'product') {
+              var prod = data.products.find(function(p){return p.id===item.id;});
+              if (prod) prod.image = url;
+            } else if (item.type === 'category') {
+              var cat = data.categories.find(function(c){return c.id===item.id;});
+              if (cat) cat.image = url;
+            } else if (item.type === 'settings') {
+              data.settings.logo = url;
+            }
+            success++;
+          } else {
+            failed++;
+          }
+        } catch(e) {
+          console.error('Cleanup failed for', item.label, e);
+          failed++;
+        }
+      }
+
+      // Save the cleaned data (products, categories, and possibly settings/logo)
+      var dirtyParts = [];
+      if (success > 0) dirtyParts.push('products', 'categories', 'settings');
+      saveData(dirtyParts.length ? dirtyParts : undefined);
+      renderAll();
+
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      status.textContent = '✓ تم تنظيف ' + success + ' صورة بنجاح' + (failed > 0 ? ' | فشل ' + failed : '');
+      status.style.color = failed > 0 ? '#f59e0b' : '#10b981';
+      showToast('تم تنظيف ' + success + ' صورة وتحويلها لروابط خفيفة ✓', 'success');
     }
+
+    // ============ TOAST NOTIFICATIONS ============
+    function manualSyncToCloud() { forceSyncNow(); }
 
     function showToast(message, type) {
       type = type || 'info';
