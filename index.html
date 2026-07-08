@@ -850,6 +850,7 @@
 .sync-offline .sync-dot { background: #6b7280; }
 .sync-offline { color: #6b7280; }
 @keyframes syncPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
   .admin-topbar .hamburger-btn { display: flex; }
@@ -1131,6 +1132,8 @@
     let data = null;
     const FALLBACK_WHATSAPP = "https://api.whatsapp.com/send/?phone=201055190003";
     let syncState = 'offline'; // 'connected' | 'syncing' | 'error' | 'offline'
+    let pendingProductUpload = null; // Promise tracking for product image upload
+    let pendingCategoryUpload = null; // Promise tracking for category image upload
 
     // ============ FIREBASE REST API ============
     function updateSyncUI(state, label) {
@@ -1376,7 +1379,7 @@
     // ============ RENDER: SITE BRANDING ============
     function renderBranding() {
       const siteName = (data.settings && data.settings.siteName) || '3DVISION store';
-      const siteNameEn = (data.settings && data.settings.siteNameEn) || '3D Automotive Art';
+      const siteNameEn = (data.settings && data.settings.siteNameEn) || 'متجر 3D ڤيچن';
       const logo = (data.settings && data.settings.logo) || null;
       const logoSrc = logo || 'logo.png';
 
@@ -1842,7 +1845,7 @@
     function renderAdminSettings() {
       var s = data.settings || {};
       document.getElementById('settingSiteName').value = s.siteName || '3DVISION store';
-      document.getElementById('settingSiteNameEn').value = s.siteNameEn || '3D Automotive Art';
+      document.getElementById('settingSiteNameEn').value = s.siteNameEn || 'متجر 3D ڤيچن';
       document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
       var preview = document.getElementById('logoPreviewArea');
       if (s.logo) { preview.innerHTML = '<img src="'+s.logo+'" alt="Logo">'; }
@@ -1979,20 +1982,31 @@
     function handleProductImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
       var preview = document.getElementById('productImagePreview');
-      // Show local preview immediately
+      var urlInput = document.getElementById('productImage');
+      // Clear any previous pending upload
+      pendingProductUpload = null;
+      // Show local preview immediately with uploading overlay
       var localReader = new FileReader();
       localReader.onload = function(ev) {
-        preview.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+        preview.innerHTML = '<div style="position:relative;width:100%;height:100%"><img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover"><div id="productUploadOverlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px"><div style="width:20px;height:20px;border:2px solid #e2b04a;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><span style="font-size:0.6rem;color:#e2b04a">جاري الرفع...</span></div></div>';
       };
       localReader.readAsDataURL(f);
-      // Upload to Firebase Storage in background
       showToast('جاري رفع الصورة...', 'info');
-      uploadToFirebaseStorage(f, 'products').then(function(url) {
+      // Create a promise that resolves with the URL
+      pendingProductUpload = uploadToFirebaseStorage(f, 'products').then(function(url) {
+        var overlay = document.getElementById('productUploadOverlay');
+        if (overlay) overlay.remove();
         if (url) {
-          document.getElementById('productImage').value = url;
+          urlInput.value = url;
           preview.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
           showToast('تم رفع الصورة بنجاح ✓', 'success');
         }
+        return url;
+      }).catch(function(err) {
+        var overlay = document.getElementById('productUploadOverlay');
+        if (overlay) overlay.remove();
+        showToast('فشل رفع الصورة: ' + err.message, 'error');
+        return null;
       });
     }
     function showProductForm(id) {
@@ -2025,17 +2039,28 @@
       }
       m.classList.add('active');
     }
-    function hideProductForm() { document.getElementById('productModalOverlay').classList.remove('active'); }
-    function saveProduct() {
+    function hideProductForm() { document.getElementById('productModalOverlay').classList.remove('active'); pendingProductUpload = null; }
+    async function saveProduct() {
       if (!data.products) data.products = [];
       var eid = document.getElementById('productEditId').value;
+      // If there's a pending image upload, wait for it first
+      if (pendingProductUpload) {
+        showToast('في انتظار رفع الصورة...', 'info');
+        var uploadUrl = await pendingProductUpload;
+        pendingProductUpload = null;
+        if (!uploadUrl && !document.getElementById('productImage').value.trim()) {
+          showToast('فشل رفع الصورة - حاول مرة أخرى', 'error');
+          return;
+        }
+      }
       var obj = { name: document.getElementById('productName').value.trim(), price: parseFloat(document.getElementById('productPrice').value)||0, originalPrice: parseFloat(document.getElementById('productOriginalPrice').value)||0, image: document.getElementById('productImage').value.trim(), category: document.getElementById('productCategory').value };
-      if (!obj.name) { alert('يرجى إدخال اسم المنتج'); return; }
-      if (!obj.image) { alert('يرجى إدخال رابط الصورة أو رفع صورة'); return; }
+      if (!obj.name) { showToast('يرجى إدخال اسم المنتج', 'error'); return; }
+      if (!obj.image) { showToast('يرجى إدخال رابط الصورة أو رفع صورة', 'error'); return; }
       if (obj.originalPrice <= 0) obj.originalPrice = 0;
       if (eid) { var idx = data.products.findIndex(function(p){return p.id===eid;}); if (idx!==-1) data.products[idx] = Object.assign({}, data.products[idx], obj); }
       else { obj.id = 'p'+Date.now(); obj.order = data.products.length; data.products.push(obj); }
       saveData(); hideProductForm(); renderAdminProducts(); renderAll();
+      showToast('تم حفظ المنتج بنجاح ✓', 'success');
     }
     function deleteProduct(id) { if (!confirm('حذف هذا المنتج؟')) return; data.products = (data.products||[]).filter(function(p){return p.id!==id;}); saveData(); renderAdminProducts(); renderAll(); }
 
@@ -2069,18 +2094,28 @@
     function handleCategoryImageUpload(e) {
       var f = e.target.files[0]; if (!f) return;
       var preview = document.getElementById('categoryImagePreview');
+      var urlInput = document.getElementById('categoryImage');
+      pendingCategoryUpload = null;
       var localReader = new FileReader();
       localReader.onload = function(ev) {
-        preview.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+        preview.innerHTML = '<div style="position:relative;width:100%;height:100%"><img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover"><div id="catUploadOverlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px"><div style="width:20px;height:20px;border:2px solid #e2b04a;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><span style="font-size:0.6rem;color:#e2b04a">جاري الرفع...</span></div></div>';
       };
       localReader.readAsDataURL(f);
       showToast('جاري رفع الصورة...', 'info');
-      uploadToFirebaseStorage(f, 'categories').then(function(url) {
+      pendingCategoryUpload = uploadToFirebaseStorage(f, 'categories').then(function(url) {
+        var overlay = document.getElementById('catUploadOverlay');
+        if (overlay) overlay.remove();
         if (url) {
-          document.getElementById('categoryImage').value = url;
+          urlInput.value = url;
           preview.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
           showToast('تم رفع الصورة بنجاح ✓', 'success');
         }
+        return url;
+      }).catch(function(err) {
+        var overlay = document.getElementById('catUploadOverlay');
+        if (overlay) overlay.remove();
+        showToast('فشل رفع الصورة: ' + err.message, 'error');
+        return null;
       });
     }
     function showCategoryForm(id) {
@@ -2106,16 +2141,27 @@
       }
       m.classList.add('active');
     }
-    function hideCategoryForm() { document.getElementById('categoryModalOverlay').classList.remove('active'); }
-    function saveCategory() {
+    function hideCategoryForm() { document.getElementById('categoryModalOverlay').classList.remove('active'); pendingCategoryUpload = null; }
+    async function saveCategory() {
       if (!data.categories) data.categories = [];
       var eid = document.getElementById('categoryEditId').value;
+      // If there's a pending image upload, wait for it first
+      if (pendingCategoryUpload) {
+        showToast('في انتظار رفع الصورة...', 'info');
+        var uploadUrl = await pendingCategoryUpload;
+        pendingCategoryUpload = null;
+        if (!uploadUrl && !document.getElementById('categoryImage').value.trim()) {
+          showToast('فشل رفع الصورة - حاول مرة أخرى', 'error');
+          return;
+        }
+      }
       var obj = { titleAr: document.getElementById('categoryTitleAr').value.trim(), titleEn: document.getElementById('categoryTitleEn').value.trim(), descriptionAr: document.getElementById('categoryDescAr').value.trim(), image: document.getElementById('categoryImage').value.trim() };
-      if (!obj.titleAr) { alert('يرجى إدخال اسم التصنيف'); return; }
-      if (!obj.image) { alert('يرجى إدخال رابط الصورة أو رفع صورة'); return; }
+      if (!obj.titleAr) { showToast('يرجى إدخال اسم التصنيف', 'error'); return; }
+      if (!obj.image) { showToast('يرجى إدخال رابط الصورة أو رفع صورة', 'error'); return; }
       if (eid) { var idx = data.categories.findIndex(function(c){return c.id===eid;}); if (idx!==-1) data.categories[idx] = Object.assign({}, data.categories[idx], obj); }
       else { obj.id = 'cat_'+Date.now(); data.categories.push(obj); }
       saveData(); hideCategoryForm(); renderAdminCategories(); renderAll();
+      showToast('تم حفظ التصنيف بنجاح ✓', 'success');
     }
     function deleteCategory(id) { if (!confirm('حذف هذا التصنيف؟ سيبقى المنتجات التابعة له بدون تصنيف.')) return; data.categories = (data.categories||[]).filter(function(c){return c.id!==id;}); saveData(); renderAdminCategories(); renderAll(); }
 
