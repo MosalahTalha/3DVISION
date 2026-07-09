@@ -592,6 +592,11 @@
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             اطلب عبر واتساب
           </a>
+          <button id="modalShareBtn" onclick="shareProduct(currentModalProductId)"
+             class="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl text-sm transition-all w-full mt-2">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            مشاركة المنتج
+          </button>
         </div>
       </div>
     </div>
@@ -1426,6 +1431,109 @@
       return base + "&text=" + msg;
     }
 
+    // ============ SHARE (with deep links) ============
+    function getStoreUrl() {
+      try { return window.location.href.split('#')[0]; } catch(e) { return ''; }
+    }
+    function getProductUrl(productId) { return getStoreUrl() + '#product/' + productId; }
+    function getCategoryUrl(catId) { return getStoreUrl() + '#category/' + catId; }
+
+    function buildProductShareText(product) {
+      var lines = ['🛍️ منتج من *3DVISION store*\n'];
+      lines.push('🔹 ' + product.name + '\n');
+      lines.push('💰 ' + formatPrice(product.price));
+      if (product.originalPrice && product.originalPrice > product.price) {
+        lines.push('  (كان ' + formatPrice(product.originalPrice) + ')');
+      }
+      lines.push('\n👉 رابط المنتج:\n' + getProductUrl(product.id));
+      lines.push('\n💬 اطلبه الآن:\n' + getWhatsAppProductLink(product));
+      return lines.join('\n');
+    }
+
+    function buildCategoryShareText(catId) {
+      var cat = (data.categories || []).find(function(c) { return c.id === catId; });
+      if (!cat) return '';
+      var products = (data.products || []).filter(function(p) { return p.category === catId && p.image; });
+      if (!products.length) return '';
+      var lines = ['📦 *' + cat.titleAr + '* — 3DVISION store\n'];
+      products.forEach(function(p, i) {
+        lines.push((i + 1) + '. ' + p.name + ' — ' + formatPrice(p.price));
+        if (p.originalPrice && p.originalPrice > p.price) {
+          lines.push('   (كان ' + formatPrice(p.originalPrice) + ')');
+        }
+      });
+      lines.push('\n👉 رابط التصنيف:\n' + getCategoryUrl(catId));
+      var waLink = getWhatsAppLink();
+      lines.push('\n💬 اطلب عبر واتساب:\n' + waLink + '&text=' + encodeURIComponent('أريد معرفة المزيد عن مجموعة: ' + cat.titleAr));
+      return lines.join('\n');
+    }
+
+    async function shareProduct(productId) {
+      var product = (data.products || []).find(function(p) { return p.id === productId; });
+      if (!product) return;
+      var text = buildProductShareText(product);
+      var deepUrl = getProductUrl(productId);
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: product.name + ' — 3DVISION store', text: text, url: deepUrl });
+          return;
+        } catch(e) { if (e.name === 'AbortError') return; }
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('تم نسخ رابط المنتج ✓', 'success');
+      } catch(e) {
+        window.open(getWhatsAppProductLink(product), '_blank');
+      }
+    }
+
+    async function shareCategory(catId) {
+      var text = buildCategoryShareText(catId);
+      if (!text) { showToast('لا توجد منتجات للمشاركة', 'error'); return; }
+      var cat = (data.categories || []).find(function(c) { return c.id === catId; });
+      var deepUrl = getCategoryUrl(catId);
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: (cat ? cat.titleAr : 'منتجات') + ' — 3DVISION store', text: text, url: deepUrl });
+          return;
+        } catch(e) { if (e.name === 'AbortError') return; }
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('تم نسخ رابط التصنيف ✓', 'success');
+      } catch(e) {
+        var waLink = getWhatsAppLink();
+        window.open(waLink + '&text=' + encodeURIComponent(text), '_blank');
+      }
+    }
+
+    // ============ DEEP LINK ROUTER ============
+    function handleDeepLink() {
+      var hash = window.location.hash;
+      if (!hash) return;
+
+      if (hash.startsWith('#product/')) {
+        var pid = hash.replace('#product/', '');
+        var product = (data.products || []).find(function(p) { return p.id === pid; });
+        if (product) {
+          setTimeout(function() { openModalById(pid); }, 600);
+        }
+        return;
+      }
+
+      if (hash.startsWith('#category/')) {
+        var cid = hash.replace('#category/', '');
+        setTimeout(function() { scrollToCategory(cid); }, 400);
+        return;
+      }
+    }
+
+    window.addEventListener('hashchange', handleDeepLink);
+
     function getContactIcon(type, size) {
       const s = size || 6;
       const cls = 'w-' + s + ' h-' + s;
@@ -1618,10 +1726,16 @@
           + '<p class="text-white/40 text-xs tracking-wider uppercase mb-1">' + cat.titleEn + '</p>'
           + '<h3 class="text-xl sm:text-2xl font-bold">' + cat.titleAr + '</h3>'
           + '</div>'
+          + '<div class="flex items-center gap-2">'
+          + '<button onclick="shareCategory(\'' + cat.id + '\')" class="text-white/50 hover:text-gold text-sm flex items-center gap-1 transition-colors" title="مشاركة التصنيف">'
+          + '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+          + 'مشاركة'
+          + '</button>'
           + '<a href="' + waLink + '&text=' + encodeURIComponent('أريد معرفة المزيد عن مجموعة: ' + cat.titleAr) + '" target="_blank" class="text-gold text-sm hover:underline flex items-center gap-1">'
-          + 'اطلب الكال'
+          + 'اطلب الكل'
           + '<svg class="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
           + '</a>'
+          + '</div>'
           + '</div>'
           + '<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">'
           + catProducts.map(p => renderProductCard(p)).join('')
@@ -1642,11 +1756,16 @@
         + '<img src="' + product.image + '" alt="' + product.name + '" crossorigin="anonymous" class="product-img w-full h-full object-cover transition-transform duration-500" loading="lazy">'
         + (hasDiscount ? '<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">خصم ' + discountPercent + '%</span>' : '')
         + '<div class="product-overlay absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 transition-opacity duration-300">'
+        + '<div class="flex items-center gap-2">'
         + '<a href="' + getWhatsAppProductLink(product) + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"'
-        + ' class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors">'
+        + ' class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">'
         + '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
-        + 'اطلب عبر واتساب'
-        + '</a>'
+        + 'اطلب</a>'
+        + '<button onclick="event.stopPropagation();shareProduct(\'' + (product.id || '') + '\')"'
+        + ' class="bg-white/15 hover:bg-white/25 backdrop-blur text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">'
+        + '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>'
+        + 'مشاركة</button>'
+        + '</div>'
         + '</div>'
         + '</div>'
         + '<div class="p-2.5 sm:p-3">'
@@ -1739,16 +1858,20 @@
     }
 
     // ============ MODAL ============
+    var currentModalProductId = null;
+
     function openModalById(id) {
       const product = (data.products || []).find(p => p.id === id);
       if (!product) return;
       // Track product view (local-only, no cloud sync)
       trackProductClick(product.id);
+      currentModalProductId = id;
       openModal(product);
     }
 
     function openModal(product) {
       if (!product) return;
+      currentModalProductId = product.id || null;
 
       const hasDiscount = product.originalPrice && product.originalPrice > product.price;
       const discountPercent = hasDiscount ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
@@ -2566,11 +2689,15 @@
         renderFooterLinks();
         renderFooterSocial();
         handleNavScroll();
+
+        // Handle deep links (#product/xxx or #category/xxx)
+        handleDeepLink();
       }
     });
 
     window.addEventListener('hashchange', () => {
-      if (window.location.hash === '#admin') {
+      var hash = window.location.hash;
+      if (hash === '#admin') {
         showAdmin();
       } else if (!document.getElementById('adminPanel').classList.contains('hidden')) {
         hideAdmin();
