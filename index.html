@@ -7,7 +7,10 @@
   <title>3DVISION store | متجر 3D ڤيچن</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://dvision-website-10140-default-rtdb.firebaseio.com">
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,7 +30,8 @@
   </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Cairo', system-ui, sans-serif; background: #0a0a0a; color: #fff; transition: background-color 0.3s, color 0.3s; }
+    body { font-family: 'Cairo', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #fff; transition: background-color 0.3s, color 0.3s; }
+    img { background: #1a1a1a; }
 
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
@@ -1202,83 +1206,175 @@
       } catch(e) { return false; }
     }
 
-    // ============ LOAD — ALL SECTIONS IN PARALLEL + OLD DATA MIGRATION ============
+    // ============ SPEED CACHE (localStorage) ============
+    var _CACHE_KEY = 'brq_data_cache';
+    var _CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours — instant load for returning visitors
+
+    function _getCache() {
+      try {
+        var raw = localStorage.getItem(_CACHE_KEY);
+        if (!raw) return null;
+        var c = JSON.parse(raw);
+        if (!c || !c.data || !c.t) return null;
+        if (Date.now() - c.t > _CACHE_TTL) return null;
+        return c.data;
+      } catch(e) { return null; }
+    }
+
+    function _setCache(d) {
+      try { localStorage.setItem(_CACHE_KEY, JSON.stringify({ t: Date.now(), data: d })); } catch(e) {}
+    }
+
+    function _ensureFields() {
+      if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {}, productClicks: {} };
+      if (!data.stats.dailyVisits) data.stats.dailyVisits = {};
+      if (!data.stats.productClicks) data.stats.productClicks = {};
+    }
+
+    // ============ LOAD — CACHE FIRST, FIREBASE BACKGROUND ============
     async function loadData() {
       var defaults = getDefaultFallbackData();
-      updateSyncUI('syncing', 'جاري التحميل...');
 
-      // Fetch all 8 sections simultaneously
-      var results = await Promise.all(SECTIONS.map(function(name) {
-        return fbGetSection(name);
-      }));
-
-      // Build data from section results, filling missing with defaults
-      data = {
-        settings:       results[0] || defaults.settings,
-        contacts:       results[1] || defaults.contacts,
-        categories:     results[2] || defaults.categories,
-        products:       results[3] || defaults.products,
-        announcements:  results[4] || defaults.announcements,
-        promoBanner:    results[5] || defaults.promoBanner,
-        testimonials:   results[6] || defaults.testimonials,
-        stats:          results[7] || defaults.stats
-      };
-
-      var hasSectionData = results.some(function(r) { return r !== null; });
-
-      if (hasSectionData) {
+      // === INSTANT: check cache ===
+      var cached = _getCache();
+      if (cached) {
+        data = cached;
+        _ensureFields();
         updateSyncUI('connected', 'متصل ✓');
-        console.log('[BRQ] Loaded from Firebase (parallel, ' + SECTIONS.length + ' sections)');
+        console.log('[BRQ] ⚡ Instant load from cache');
+        // Background refresh — don't block rendering
+        _backgroundRefresh(defaults);
+        return data;
       }
 
-      // ALWAYS check old /data.json to recover any missing sections
-      // This preserves old data even if new sections already partially exist
+      // === NO CACHE: render defaults INSTANTLY, load Firebase in background ===
+      data = defaults;
+      _ensureFields();
+      updateSyncUI('syncing', 'جاري التحديث...');
+      console.log('[BRQ] ⚡ Instant render with defaults, loading Firebase in background');
+      _progressiveLoad(defaults); // fire-and-forget
+      return data;
+    }
+
+    // Progressive Firebase load — each section updates the UI independently as it arrives
+    async function _progressiveLoad(defaults) {
+      var hasAnyData = false;
+      var sectionRenderers = {
+        settings: renderBranding,
+        contacts: function() { renderContacts(); renderFooterSocial(); renderWhatsAppLinks(); },
+        categories: function() { renderCategories(); renderProductSections(); renderFooterLinks(); },
+        products: renderProductSections,
+        announcements: renderAnnouncements,
+        promoBanner: renderPromoBanner,
+        testimonials: renderTestimonials,
+        stats: function() {}
+      };
+
+      // Fetch all sections in parallel, update UI as each arrives
+      var promises = SECTIONS.map(function(name, idx) {
+        return fbGetSection(name).then(function(result) {
+          if (result !== null) {
+            hasAnyData = true;
+            data[name] = (name === 'stats') ? result : (result || defaults[name]);
+            // Render this section immediately
+            if (sectionRenderers[name]) {
+              try { sectionRenderers[name](); } catch(e) {}
+            }
+          }
+          return result;
+        });
+      });
+
+      // Wait for all to finish
+      var results = await Promise.all(promises);
+
+      // Check old /data.json for any missing sections
       try {
         var oldData = await fbGetSection('data');
         if (oldData && typeof oldData === 'object') {
           var migrated = false;
           SECTIONS.forEach(function(name, idx) {
-            // If a section is null/missing AND old data has it → recover it
             if (results[idx] === null && oldData[name] && typeof oldData[name] !== 'undefined') {
               data[name] = oldData[name];
               migrated = true;
-              console.log('[BRQ] Recovered section "' + name + '" from old /data.json');
             }
           });
           if (migrated) {
-            // Save recovered sections to their new paths
             await Promise.all(SECTIONS.filter(function(name, idx) {
               return results[idx] === null && oldData[name];
             }).map(function(name) {
               return fbPutSection(name, data[name]);
             }));
-            console.log('[BRQ] Migrated recovered sections to new paths');
-            if (!hasSectionData) {
+            if (!hasAnyData) {
               showToast('تم ترحيل البيانات القديمة للهيكل الجديد ✓', 'success');
-              updateSyncUI('connected', 'متصل ✓ (تم ترحيل البيانات القديمة)');
             }
           }
         }
-      } catch(e) {
-        console.warn('[BRQ] Old data check failed (non-critical):', e);
-      }
+      } catch(e) {}
 
-      // If still no data at all, use defaults and initialize
-      if (!hasSectionData) {
-        data = defaults;
+      if (hasAnyData) {
+        _setCache(data);
+        updateSyncUI('connected', 'متصل ✓');
+        console.log('[BRQ] Progressive load complete, cached for next visit');
+      } else {
         updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
         console.log('[BRQ] Firebase unavailable, using defaults');
         initializeFirebase().then(function(ok) {
-          if (ok) updateSyncUI('connected', 'متصل ✓');
+          if (ok) { _setCache(data); updateSyncUI('connected', 'متصل ✓'); }
         });
       }
 
-      // Ensure required fields
-      if (!data.stats) data.stats = { visitorCount: 0, dailyVisits: {}, productClicks: {} };
-      if (!data.stats.dailyVisits) data.stats.dailyVisits = {};
-      if (!data.stats.productClicks) data.stats.productClicks = {};
+      _ensureFields();
+    }
 
-      return data;
+    // Background refresh — runs after instant cache render
+    async function _backgroundRefresh(defaults) {
+      try {
+        var results = await Promise.all(SECTIONS.map(function(name) {
+          return fbGetSection(name);
+        }));
+        var hasSectionData = results.some(function(r) { return r !== null; });
+        if (!hasSectionData) return;
+
+        var fresh = {
+          settings:       results[0] || defaults.settings,
+          contacts:       results[1] || defaults.contacts,
+          categories:     results[2] || defaults.categories,
+          products:       results[3] || defaults.products,
+          announcements:  results[4] || defaults.announcements,
+          promoBanner:    results[5] || defaults.promoBanner,
+          testimonials:   results[6] || defaults.testimonials,
+          stats:          results[7] || data.stats
+        };
+
+        _setCache(fresh);
+
+        // Check if anything actually changed (skip stats — they change constantly)
+        var oldCopy = JSON.parse(JSON.stringify(data));
+        oldCopy.stats = {};
+        var newCopy = JSON.parse(JSON.stringify(fresh));
+        newCopy.stats = {};
+
+        if (JSON.stringify(oldCopy) !== JSON.stringify(newCopy)) {
+          data = fresh;
+          _ensureFields();
+          console.log('[BRQ] Background refresh: data changed, re-rendering');
+          renderAll();
+          // Re-handle deep link if user is viewing one
+          if (window.location.hash.startsWith('#product/') || window.location.hash.startsWith('#category/')) {
+            handleDeepLink();
+          }
+        } else {
+          console.log('[BRQ] Background refresh: no changes');
+          // Just update stats if they changed
+          if (results[7]) {
+            data.stats = results[7];
+            _ensureFields();
+          }
+        }
+      } catch(e) {
+        console.warn('[BRQ] Background refresh failed:', e);
+      }
     }
 
     // First-time setup: write all default sections to Firebase
@@ -1320,6 +1416,7 @@
         delete _saveTimers[name];
         fbPutSection(name, val).then(function(ok) {
           if (ok) {
+            _setCache(data); // refresh cache after save
             updateSyncUI('connected', 'متصل ✓');
             console.log('[BRQ] Saved: ' + name + ' (' + JSON.stringify(val).length + ' bytes)');
           } else {
@@ -2705,6 +2802,15 @@
         hideAdmin();
       }
     });
+
+    // Hide broken images gracefully
+    document.addEventListener('error', function(e) {
+      if (e.target && e.target.tagName === 'IMG') {
+        e.target.style.opacity = '0';
+        e.target.style.height = '0';
+        e.target.style.padding = '0';
+      }
+    }, true);
   </script>
 </body>
 </html>
