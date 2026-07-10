@@ -1316,6 +1316,12 @@
         _setCache(data);
         updateSyncUI('connected', 'متصل ✓');
         console.log('[BRQ] Progressive load complete, cached for next visit');
+
+        // Re-handle deep link with real Firebase data (fixes shared product links showing wrong/missing image)
+        if (window.location.hash.startsWith('#product/') || window.location.hash.startsWith('#category/')) {
+          closeModal();
+          handleDeepLink();
+        }
       } else {
         updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
         console.log('[BRQ] Firebase unavailable, using defaults');
@@ -1362,6 +1368,7 @@
           renderAll();
           // Re-handle deep link if user is viewing one
           if (window.location.hash.startsWith('#product/') || window.location.hash.startsWith('#category/')) {
+            closeModal();
             handleDeepLink();
           }
         } else {
@@ -1621,14 +1628,17 @@
         var pid = hash.replace('#product/', '');
         var product = (data.products || []).find(function(p) { return p.id === pid; });
         if (product) {
-          setTimeout(function() { openModalById(pid); }, 600);
+          // Don't open modal with default data if Firebase is still loading
+          // progressiveLoad will re-call handleDeepLink with real data
+          if (syncState === 'syncing') return;
+          setTimeout(function() { openModalById(pid); }, 400);
         }
         return;
       }
 
       if (hash.startsWith('#category/')) {
         var cid = hash.replace('#category/', '');
-        setTimeout(function() { scrollToCategory(cid); }, 400);
+        setTimeout(function() { scrollToCategory(cid); }, 300);
         return;
       }
     }
