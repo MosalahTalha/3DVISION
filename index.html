@@ -585,7 +585,7 @@
     <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
       <div class="bg-card border border-white/10 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div class="relative">
-          <img id="modalImage" src="" alt="" class="w-full aspect-square object-cover rounded-t-2xl">
+          <img id="modalImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="w-full aspect-square object-cover rounded-t-2xl">
           <span id="modalBadge" class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full hidden">خصم</span>
           <button onclick="closeModal()" class="absolute top-3 left-3 w-8 h-8 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors">
             <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1985,8 +1985,12 @@
       const hasDiscount = product.originalPrice && product.originalPrice > product.price;
       const discountPercent = hasDiscount ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
 
-      document.getElementById('modalImage').src = product.image;
-      document.getElementById('modalImage').alt = product.name;
+      var modalImg = document.getElementById('modalImage');
+      modalImg.style.opacity = '';
+      modalImg.style.height = '';
+      modalImg.style.padding = '';
+      modalImg.src = product.image;
+      modalImg.alt = product.name;
       document.getElementById('modalName').textContent = product.name;
       document.getElementById('modalPrice').textContent = formatPrice(product.price);
 
