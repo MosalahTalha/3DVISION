@@ -1585,19 +1585,7 @@
     function buildCategoryShareText(catId) {
       var cat = (data.categories || []).find(function(c) { return c.id === catId; });
       if (!cat) return '';
-      var products = (data.products || []).filter(function(p) { return p.category === catId && p.image; });
-      if (!products.length) return '';
-      var lines = ['📦 *' + cat.titleAr + '* — 3DVISION store\n'];
-      products.forEach(function(p, i) {
-        lines.push((i + 1) + '. ' + p.name + ' — ' + formatPrice(p.price));
-        if (p.originalPrice && p.originalPrice > p.price) {
-          lines.push('   (كان ' + formatPrice(p.originalPrice) + ')');
-        }
-      });
-      lines.push('\n👉 رابط التصنيف:\n' + getCategoryUrl(catId));
-      var waLink = getWhatsAppLink();
-      lines.push('\n💬 اطلب عبر واتساب:\n' + waLink + '&text=' + encodeURIComponent('أريد معرفة المزيد عن مجموعة: ' + cat.titleAr));
-      return lines.join('\n');
+      return '🛍️ تصنيف من *3DVISION store*\n🔹 ' + cat.titleAr + '\n\n👉 رابط التصنيف:\n' + getCategoryUrl(catId);
     }
 
     async function shareProduct(productId) {
