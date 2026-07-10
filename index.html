@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo.png">
   <title>3DVISION store | متجر 3D ڤيچن</title>
+  <!-- Open Graph / Link Preview Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="3DVISION store">
+  <meta property="og:title" content="متجر 3D ڤيچن | 3DVISION store">
+  <meta property="og:description" content="souvenirs and gifts, 3D printed models and art — تحف وهدايا ونماذج واعمال فنية ثلاثية الأبعاد">
+  <meta property="og:image" id="ogImage" content="">
+  <meta property="og:locale" content="ar_EG">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="متجر 3D ڤيچن | 3DVISION store">
+  <meta name="twitter:description" content="souvenirs and gifts, 3D printed models and art — تحف وهدايا ونماذج واعمال فنية ثلاثية الأبعاد">
+  <meta name="twitter:image" id="twitterImage" content="">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://dvision-website-10140-default-rtdb.firebaseio.com">
@@ -931,6 +943,9 @@
           <div style="max-width:600px">
             <div class="admin-form-group"><label>اسم الموقع (عربي)</label><input type="text" id="settingSiteName"></div>
             <div class="admin-form-group"><label>اسم الموقع (إنجليزي)</label><input type="text" id="settingSiteNameEn"></div>
+            <div class="admin-form-group"><label>رابط الموقع (لعرض صور المنتجات عند المشاركة)</label><input type="text" id="settingSiteUrl" placeholder="https://example.com/brq-benzine.html" dir="ltr" style="text-align:left">
+              <p style="font-size:0.7rem;color:#888;margin-top:4px">ضع الرابط الكامل للموقع — لازم عشان لما حد يضغط على رابط مشاركة منتج يتحول للموقع</p>
+            </div>
             <div class="admin-form-group"><label>شعار الموقع</label><div class="logo-preview-area" id="logoPreviewArea"><svg width="32" height="32" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoUpload(event)" style="margin-bottom:0.5rem"><br><button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeLogo()">حذف اللوجو</button></div>
             <div class="admin-form-group"><label>المظهر الافتراضي</label><select id="settingDefaultTheme"><option value="dark">داكن</option><option value="light">فاتح</option></select></div>
             <button class="admin-btn admin-btn-primary" onclick="saveSettings()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>حفظ الإعدادات</button>
@@ -1542,11 +1557,14 @@
     }
 
     // ============ SHARE (with deep links) ============
+    // OG Preview Cloud Function URL — serves correct image preview for social media
+    var OG_PROXY = 'https://us-central1-dvision-website-10140.cloudfunctions.net/share';
+
     function getStoreUrl() {
       try { return window.location.href.split('#')[0]; } catch(e) { return ''; }
     }
-    function getProductUrl(productId) { return getStoreUrl() + '#product/' + productId; }
-    function getCategoryUrl(catId) { return getStoreUrl() + '#category/' + catId; }
+    function getProductUrl(productId) { return OG_PROXY + '?p=' + productId; }
+    function getCategoryUrl(catId) { return OG_PROXY + '?c=' + catId; }
 
     function buildProductShareText(product) {
       var lines = ['🛍️ منتج من *3DVISION store*\n'];
@@ -1762,6 +1780,9 @@
       // Copyright
       const year = new Date().getFullYear();
       document.getElementById('footerCopyright').textContent = '© ' + year + ' ' + siteName + '. جميع الحقوق محفوظة.';
+
+      // Update OG tags with store branding
+      _updateOG(siteName + ' | ' + siteNameEn, 'souvenirs and gifts, 3D printed models and art — تحف وهدايا ونماذج واعمال فنية ثلاثية الأبعاد', logoSrc);
     }
 
     // ============ RENDER: WHATSAPP LINKS ============
@@ -1966,7 +1987,25 @@
       container.innerHTML = html;
     }
 
-    // ============ MODAL ============
+    // ============ OG / LINK PREVIEW HELPERS ============
+    function _updateOG(title, description, imageUrl) {
+      _setMeta('og:title', title);
+      _setMeta('og:description', description);
+      if (imageUrl) _setMeta('og:image', _toAbsoluteUrl(imageUrl));
+      _setMeta('twitter:title', title);
+      _setMeta('twitter:description', description);
+      if (imageUrl) _setMeta('twitter:image', _toAbsoluteUrl(imageUrl));
+    }
+    function _setMeta(prop, content) {
+      var el = document.querySelector('meta[property="' + prop + '"]') || document.querySelector('meta[name="' + prop + '"]');
+      if (el) el.setAttribute('content', content);
+    }
+    function _toAbsoluteUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      try { return new URL(url, window.location.href).href; } catch(e) { return url; }
+    }
+
     var currentModalProductId = null;
 
     function openModalById(id) {
@@ -1991,6 +2030,10 @@
       modalImg.style.padding = '';
       modalImg.src = product.image;
       modalImg.alt = product.name;
+
+      // Update OG tags for link previews (helps native share APIs on some platforms)
+      _updateOG(product.name, formatPrice(product.price) + ' — ' + product.name, product.image);
+      document.title = product.name + ' | 3DVISION store';
       document.getElementById('modalName').textContent = product.name;
       document.getElementById('modalPrice').textContent = formatPrice(product.price);
 
@@ -2018,6 +2061,12 @@
     function closeModal() {
       document.getElementById('productModal').classList.add('hidden');
       document.body.style.overflow = '';
+      // Restore default OG tags
+      var siteName = (data.settings && data.settings.siteName) || '3DVISION store';
+      var siteNameEn = (data.settings && data.settings.siteNameEn) || 'متجر 3D ڤيچن';
+      var logo = (data.settings && data.settings.logo) || 'logo.png';
+      _updateOG(siteName + ' | ' + siteNameEn, 'souvenirs and gifts, 3D printed models and art — تحف وهدايا ونماذج واعمال فنية ثلاثية الأبعاد', logo);
+      document.title = siteName + ' | ' + siteNameEn;
     }
 
     // ============ NAVBAR SCROLL ============
@@ -2246,6 +2295,7 @@
       var s = data.settings || {};
       document.getElementById('settingSiteName').value = s.siteName || '3DVISION store';
       document.getElementById('settingSiteNameEn').value = s.siteNameEn || 'متجر 3D ڤيچن';
+      document.getElementById('settingSiteUrl').value = s.siteUrl || '';
       document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
       var preview = document.getElementById('logoPreviewArea');
       if (s.logo) { preview.innerHTML = '<img src="'+s.logo+'" alt="Logo">'; }
@@ -2255,6 +2305,7 @@
       if (!data.settings) data.settings = {};
       data.settings.siteName = document.getElementById('settingSiteName').value.trim() || '3DVISION store';
       data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || 'متجر 3D ڤيچن';
+      data.settings.siteUrl = document.getElementById('settingSiteUrl').value.trim();
       data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
       saveData('settings');
       renderBranding();
