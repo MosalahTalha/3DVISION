@@ -943,9 +943,6 @@
           <div style="max-width:600px">
             <div class="admin-form-group"><label>اسم الموقع (عربي)</label><input type="text" id="settingSiteName"></div>
             <div class="admin-form-group"><label>اسم الموقع (إنجليزي)</label><input type="text" id="settingSiteNameEn"></div>
-            <div class="admin-form-group"><label>رابط الموقع (لعرض صور المنتجات عند المشاركة)</label><input type="text" id="settingSiteUrl" placeholder="https://example.com/brq-benzine.html" dir="ltr" style="text-align:left">
-              <p style="font-size:0.7rem;color:#888;margin-top:4px">ضع الرابط الكامل للموقع — لازم عشان لما حد يضغط على رابط مشاركة منتج يتحول للموقع</p>
-            </div>
             <div class="admin-form-group"><label>شعار الموقع</label><div class="logo-preview-area" id="logoPreviewArea"><svg width="32" height="32" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoUpload(event)" style="margin-bottom:0.5rem"><br><button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeLogo()">حذف اللوجو</button></div>
             <div class="admin-form-group"><label>المظهر الافتراضي</label><select id="settingDefaultTheme"><option value="dark">داكن</option><option value="light">فاتح</option></select></div>
             <button class="admin-btn admin-btn-primary" onclick="saveSettings()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>حفظ الإعدادات</button>
@@ -1556,26 +1553,33 @@
       return base + "&text=" + msg;
     }
 
-    // ============ SHARE (with deep links) ============
-    // OG Preview Cloud Function URL — serves correct image preview for social media
-    var OG_PROXY = 'https://us-central1-dvision-website-10140.cloudfunctions.net/share';
+    // ============ SHARE (with deep links + image file sharing) ============
 
     function getStoreUrl() {
       try { return window.location.href.split('#')[0]; } catch(e) { return ''; }
     }
-    function getProductUrl(productId) { return OG_PROXY + '?p=' + productId; }
-    function getCategoryUrl(catId) { return OG_PROXY + '?c=' + catId; }
+    function getProductUrl(productId) { return getStoreUrl() + '#product/' + productId; }
+    function getCategoryUrl(catId) { return getStoreUrl() + '#category/' + catId; }
+
+    // Fetch an image URL as a Blob (with CORS). Returns null on failure.
+    async function _fetchImageBlob(url) {
+      try {
+        var resp = await fetch(url, { mode: 'cors' });
+        if (!resp.ok) return null;
+        return await resp.blob();
+      } catch(e) { return null; }
+    }
+
+    // Get file extension from MIME type
+    function _imageExt(mime) {
+      if (mime === 'image/png') return 'png';
+      if (mime === 'image/gif') return 'gif';
+      if (mime === 'image/webp') return 'webp';
+      return 'jpg';
+    }
 
     function buildProductShareText(product) {
-      var lines = ['🛍️ منتج من *3DVISION store*\n'];
-      lines.push('🔹 ' + product.name + '\n');
-      lines.push('💰 ' + formatPrice(product.price));
-      if (product.originalPrice && product.originalPrice > product.price) {
-        lines.push('  (كان ' + formatPrice(product.originalPrice) + ')');
-      }
-      lines.push('\n👉 رابط المنتج:\n' + getProductUrl(product.id));
-      lines.push('\n💬 اطلبه الآن:\n' + getWhatsAppProductLink(product));
-      return lines.join('\n');
+      return '🛍️ منتج من *3DVISION store*\n🔹 ' + product.name + '\n\n👉 رابط المنتج:\n' + getProductUrl(product.id);
     }
 
     function buildCategoryShareText(catId) {
@@ -1600,18 +1604,39 @@
       var product = (data.products || []).find(function(p) { return p.id === productId; });
       if (!product) return;
       var deepUrl = getProductUrl(productId);
+      var shareText = buildProductShareText(product);
 
+      // === Strategy 1: Share IMAGE FILE + text (Web Share API Level 2) ===
+      // This makes WhatsApp/Telegram show the actual product image
+      if (navigator.canShare && product.image) {
+        try {
+          var blob = await _fetchImageBlob(product.image);
+          if (blob && blob.type.startsWith('image/')) {
+            var file = new File([blob], (product.id || 'product') + '.' + _imageExt(blob.type), { type: blob.type });
+            var shareData = { text: shareText, files: [file] };
+            if (navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              return;
+            }
+          }
+        } catch(e) { /* fall through */ }
+      }
+
+      // === Strategy 2: Share text only (no separate url param — so WhatsApp shows the full text) ===
       if (navigator.share) {
         try {
-          await navigator.share({ title: product.name, url: deepUrl });
+          await navigator.share({ title: product.name, text: shareText });
           return;
         } catch(e) { if (e.name === 'AbortError') return; }
       }
 
+      // === Strategy 3: Copy rich text (name + price + link) to clipboard ===
       try {
-        await navigator.clipboard.writeText(deepUrl);
+        var copyText = '🔹 ' + product.name + '\n💰 ' + formatPrice(product.price) + '\n👉 ' + deepUrl;
+        await navigator.clipboard.writeText(copyText);
         showToast('تم نسخ رابط المنتج ✓', 'success');
       } catch(e) {
+        // === Strategy 4: WhatsApp fallback ===
         window.open(getWhatsAppProductLink(product), '_blank');
       }
     }
@@ -1621,15 +1646,33 @@
       if (!cat) return;
       var deepUrl = getCategoryUrl(catId);
 
+      // === Strategy 1: Share category image as file ===
+      if (navigator.canShare && cat.image) {
+        try {
+          var blob = await _fetchImageBlob(cat.image);
+          if (blob && blob.type.startsWith('image/')) {
+            var file = new File([blob], (cat.id || 'category') + '.' + _imageExt(blob.type), { type: blob.type });
+            var shareData = { text: buildCategoryShareText(catId), files: [file] };
+            if (navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              return;
+            }
+          }
+        } catch(e) { /* fall through */ }
+      }
+
+      // === Strategy 2: Share text only ===
       if (navigator.share) {
         try {
-          await navigator.share({ title: (cat ? cat.titleAr : 'منتجات') + ' — 3DVISION store', url: deepUrl });
+          await navigator.share({ title: (cat.titleAr || 'منتجات') + ' — 3DVISION store', text: buildCategoryShareText(catId) });
           return;
         } catch(e) { if (e.name === 'AbortError') return; }
       }
 
+      // === Strategy 3: Copy rich text (name + link) to clipboard ===
       try {
-        await navigator.clipboard.writeText(deepUrl);
+        var catCopyText = '📦 ' + (cat.titleAr || 'التصنيف') + ' — 3DVISION store\n👉 ' + deepUrl;
+        await navigator.clipboard.writeText(catCopyText);
         showToast('تم نسخ رابط التصنيف ✓', 'success');
       } catch(e) {
         var waLink = getWhatsAppLink();
@@ -2295,7 +2338,6 @@
       var s = data.settings || {};
       document.getElementById('settingSiteName').value = s.siteName || '3DVISION store';
       document.getElementById('settingSiteNameEn').value = s.siteNameEn || 'متجر 3D ڤيچن';
-      document.getElementById('settingSiteUrl').value = s.siteUrl || '';
       document.getElementById('settingDefaultTheme').value = s.defaultTheme || 'dark';
       var preview = document.getElementById('logoPreviewArea');
       if (s.logo) { preview.innerHTML = '<img src="'+s.logo+'" alt="Logo">'; }
@@ -2305,7 +2347,6 @@
       if (!data.settings) data.settings = {};
       data.settings.siteName = document.getElementById('settingSiteName').value.trim() || '3DVISION store';
       data.settings.siteNameEn = document.getElementById('settingSiteNameEn').value.trim() || 'متجر 3D ڤيچن';
-      data.settings.siteUrl = document.getElementById('settingSiteUrl').value.trim();
       data.settings.defaultTheme = document.getElementById('settingDefaultTheme').value;
       saveData('settings');
       renderBranding();
