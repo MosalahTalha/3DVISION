@@ -1271,6 +1271,7 @@
     // Progressive Firebase load — each section updates the UI independently as it arrives
     async function _progressiveLoad(defaults) {
       var hasAnyData = false;
+      var firebaseResults = {}; // Track which sections got real Firebase data
       var sectionRenderers = {
         settings: renderBranding,
         contacts: function() { renderContacts(); renderFooterSocial(); renderWhatsAppLinks(); },
@@ -1287,6 +1288,7 @@
         return fbGetSection(name).then(function(result) {
           if (result !== null) {
             hasAnyData = true;
+            firebaseResults[name] = true;
             data[name] = (name === 'stats') ? result : (result || defaults[name]);
             // Render this section immediately
             if (sectionRenderers[name]) {
@@ -1300,7 +1302,7 @@
       // Wait for all to finish
       var results = await Promise.all(promises);
 
-      // Check old /data.json for any missing sections
+      // Check old /data.json for any missing sections (migration from old format)
       try {
         var oldData = await fbGetSection('data');
         if (oldData && typeof oldData === 'object') {
@@ -1308,6 +1310,8 @@
           SECTIONS.forEach(function(name, idx) {
             if (results[idx] === null && oldData[name] && typeof oldData[name] !== 'undefined') {
               data[name] = oldData[name];
+              firebaseResults[name] = true;
+              hasAnyData = true;
               migrated = true;
             }
           });
@@ -1325,9 +1329,16 @@
       } catch(e) {}
 
       if (hasAnyData) {
-        _setCache(data);
+        // Only cache if key sections (products, categories) have REAL Firebase data
+        // Never cache defaults — they would overwrite real data on next visit
+        var keySectionsHaveData = firebaseResults['products'] && firebaseResults['categories'];
+        if (keySectionsHaveData) {
+          _setCache(data);
+          console.log('[BRQ] Progressive load complete — all key sections cached');
+        } else {
+          console.log('[BRQ] Progressive load: some key sections missing from Firebase, NOT caching defaults');
+        }
         updateSyncUI('connected', 'متصل ✓');
-        console.log('[BRQ] Progressive load complete, cached for next visit');
 
         // Re-handle deep link with real Firebase data (fixes shared product links showing wrong/missing image)
         if (window.location.hash.startsWith('#product/') || window.location.hash.startsWith('#category/')) {
@@ -1336,46 +1347,43 @@
         }
       } else {
         updateSyncUI('offline', 'بيانات افتراضية (Firebase غير متاح)');
-        console.log('[BRQ] Firebase unavailable, using defaults');
-        initializeFirebase().then(function(ok) {
-          if (ok) { _setCache(data); updateSyncUI('connected', 'متصل ✓'); }
-        });
+        console.log('[BRQ] Firebase unavailable, using defaults (NOT writing to Firebase)');
+        // NEVER call initializeFirebase() here — it would overwrite real data with defaults!
+        // Only use defaults in memory for this session.
       }
 
       _ensureFields();
     }
 
     // Background refresh — runs after instant cache render
+    // CRITICAL: never replace cached real data with defaults!
     async function _backgroundRefresh(defaults) {
       try {
         var results = await Promise.all(SECTIONS.map(function(name) {
           return fbGetSection(name);
         }));
-        var hasSectionData = results.some(function(r) { return r !== null; });
-        if (!hasSectionData) return;
 
-        var fresh = {
-          settings:       results[0] || defaults.settings,
-          contacts:       results[1] || defaults.contacts,
-          categories:     results[2] || defaults.categories,
-          products:       results[3] || defaults.products,
-          announcements:  results[4] || defaults.announcements,
-          promoBanner:    results[5] || defaults.promoBanner,
-          testimonials:   results[6] || defaults.testimonials,
-          stats:          results[7] || data.stats
-        };
+        // Build fresh data — keep CACHED data when Firebase returns null
+        // This prevents a network blip from replacing real products with defaults
+        var fresh = {};
+        var hasChanges = false;
+        SECTIONS.forEach(function(name, idx) {
+          if (results[idx] !== null) {
+            fresh[name] = results[idx];
+            // Compare with current data to detect changes
+            var oldVal = JSON.stringify(data[name]);
+            var newVal = JSON.stringify(results[idx]);
+            if (oldVal !== newVal) hasChanges = true;
+          } else {
+            // Firebase returned null — KEEP the cached data, never use defaults!
+            fresh[name] = data[name];
+          }
+        });
 
-        _setCache(fresh);
-
-        // Check if anything actually changed (skip stats — they change constantly)
-        var oldCopy = JSON.parse(JSON.stringify(data));
-        oldCopy.stats = {};
-        var newCopy = JSON.parse(JSON.stringify(fresh));
-        newCopy.stats = {};
-
-        if (JSON.stringify(oldCopy) !== JSON.stringify(newCopy)) {
+        if (hasChanges) {
           data = fresh;
           _ensureFields();
+          _setCache(data);
           console.log('[BRQ] Background refresh: data changed, re-rendering');
           renderAll();
           // Re-handle deep link if user is viewing one
@@ -1385,14 +1393,9 @@
           }
         } else {
           console.log('[BRQ] Background refresh: no changes');
-          // Just update stats if they changed
-          if (results[7]) {
-            data.stats = results[7];
-            _ensureFields();
-          }
         }
       } catch(e) {
-        console.warn('[BRQ] Background refresh failed:', e);
+        console.warn('[BRQ] Background refresh failed, keeping cached data:', e);
       }
     }
 
