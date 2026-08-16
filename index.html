@@ -1011,6 +1011,7 @@
         <a class="nav-item" data-tab="announcements" onclick="switchAdminTab('announcements')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>الإعلانات</a>
         <a class="nav-item" data-tab="promo" onclick="switchAdminTab('promo')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>بانر العروض</a>
         <a class="nav-item" data-tab="materials" onclick="switchAdminTab('materials')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>تسعير المواد</a>
+        <a class="nav-item" data-tab="stlfiles" onclick="switchAdminTab('stlfiles')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>ملفات STL</a>
         <a class="nav-item" data-tab="backup" onclick="switchAdminTab('backup')"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>النسخ الاحتياطي</a>
       </nav>
       <div class="admin-content">
@@ -1073,6 +1074,11 @@
             <button class="admin-btn admin-btn-primary" onclick="savePromoBanner()">حفظ البانر</button>
             <div id="promoPreviewArea"></div>
           </div>
+        </div>
+        <div id="adminTabStlfiles" class="admin-tab-content" style="display:none">
+          <div class="section-header"><h2>ملفات STL المرفوعة</h2><button class="admin-btn" onclick="renderAdminSTLFiles()" style="display:flex;align-items:center;gap:0.5rem;border:1px solid #e2b04a;color:#e2b04a"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>تحديث</button></div>
+          <p style="color:#888;font-size:0.78rem;margin-bottom:1rem">ملفات STL اللي العملاء رفعوها عند طلب طباعة 3D مخصص — متاحة لمدة 24 ساعة فقط</p>
+          <div id="adminSTLFilesList"></div>
         </div>
       </div>
     </div>
@@ -2376,7 +2382,7 @@
 
     // Admin Nav
     var adminCurrentTab = 'dashboard';
-    var adminTabLabels = { dashboard:'الرئيسية', settings:'إعدادات الموقع', contacts:'التواصل', products:'المنتجات', categories:'التصنيفات', materials:'تسعير المواد', announcements:'الإعلانات', promo:'بانر العروض', backup:'النسخ الاحتياطي' };
+    var adminTabLabels = { dashboard:'الرئيسية', settings:'إعدادات الموقع', contacts:'التواصل', products:'المنتجات', categories:'التصنيفات', materials:'تسعير المواد', stlfiles:'ملفات STL', announcements:'الإعلانات', promo:'بانر العروض', backup:'النسخ الاحتياطي' };
 
     function switchAdminTab(tab) {
       adminCurrentTab = tab;
@@ -2415,6 +2421,7 @@
         case 'categories': renderAdminCategories(); break;
         case 'announcements': renderAdminAnnouncements(); break;
         case 'materials': renderAdminMaterials(); break;
+        case 'stlfiles': renderAdminSTLFiles(); break;
         case 'promo': renderAdminPromo(); break;
         case 'backup': break;
       }
@@ -3485,13 +3492,9 @@
       document.getElementById('stlPriceBreakdown').textContent = 'حشو ' + stlState.selectedInfill + '%';
       // Store the message for sending later
       stlState.orderMessage = 'أريد طلب طباعة 3D مخصص\n📁 الملف: ' + stlState.fileName + '\n🧱 الخامة: ' + mat.name + '\n⚖️ الوزن التقريبي: ' + actualWeight.toFixed(1) + ' جرام\n💰 السعر التقريبي: ' + formatPrice(price) + '\n🔄 نسبة الحشو: ' + stlState.selectedInfill + '%';
-      // Show order button with file attachment hint on mobile
+      // Show order button
       var btnText = document.getElementById('stlOrderBtnText');
-      if (stlState.file && navigator.canShare) {
-        btnText.textContent = 'اطلب عبر واتساب (مع الملف)';
-      } else {
-        btnText.textContent = 'اطلب عبر واتساب';
-      }
+      btnText.textContent = 'اطلب عبر واتساب';
       document.getElementById('stlOrderBtn').style.display = 'flex';
     }
 
@@ -3509,27 +3512,219 @@
 
     function sendSTLOrder() {
       if (!stlState.orderMessage) return;
+      var btn = document.getElementById('stlOrderBtn');
+      var btnText = document.getElementById('stlOrderBtnText');
       var msg = stlState.orderMessage;
-      var waLink = getWhatsAppLink();
 
-      // Strategy 1: Web Share API with file attachment (mobile — sends file to WhatsApp)
-      if (stlState.file && navigator.canShare) {
-        try {
-          var shareFile = new File([stlState.file], stlState.file.name, { type: stlState.file.type || 'application/sla' });
-          var shareData = { text: msg, files: [shareFile] };
-          if (navigator.canShare(shareData)) {
-            navigator.share(shareData).catch(function(e) {
-              if (e.name === 'AbortError') return;
-              // Fallback to WhatsApp URL
-              window.open(waLink + '&text=' + encodeURIComponent(msg), '_blank');
-            });
-            return;
-          }
-        } catch(e) {}
+      if (!stlState.file) {
+        var waLink = getWhatsAppLink() + '&text=' + encodeURIComponent(msg);
+        window.location.href = waLink;
+        return;
       }
 
-      // Strategy 2: WhatsApp URL with text (desktop fallback)
-      window.open(waLink + '&text=' + encodeURIComponent(msg), '_blank');
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btnText.textContent = 'جاري رفع الملف...';
+
+      var orderId = null;
+
+      uploadSTLToStorage(stlState.file)
+        .then(function(downloadUrl) {
+          btnText.textContent = 'جاري حفظ بيانات الطلب...';
+          return saveSTLOrderMeta({
+            fileName: stlState.fileName + '.stl',
+            originalName: stlState.file.name,
+            fileSize: stlState.file.size,
+            material: stlState.selectedMaterial ? stlState.selectedMaterial.name : '',
+            infill: stlState.selectedInfill,
+            price: stlState.orderMessage.match(/💰[^\n]*/)?.[0] || '',
+            storageUrl: downloadUrl,
+            timestamp: Date.now(),
+            expiresAt: Date.now() + 24 * 60 * 60 * 1000
+          });
+        })
+        .then(function(savedId) {
+          orderId = savedId;
+          btnText.textContent = 'جاري التحقق من رفع الملف...';
+          // Verify: read back from RTDB to confirm it's really there
+          return verifySTLOrderSaved(savedId);
+        })
+        .then(function(confirmed) {
+          if (!confirmed) throw new Error('الملف لم يتم حفظه بشكل صحيح');
+          // File confirmed uploaded and visible in admin panel
+          btnText.textContent = 'تم رفع الملف بنجاح ✓';
+          setTimeout(function() {
+            var waLink = getWhatsAppLink() + '&text=' + encodeURIComponent(msg);
+            window.location.href = waLink;
+          }, 600);
+        })
+        .catch(function(err) {
+          console.error('[STL] Order upload error:', err);
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btnText.textContent = 'إعادة محاولة الطلب';
+          var fallbackMsg = msg + '\n\nارسل الملف مرة اخري';
+          setTimeout(function() {
+            var waLink = getWhatsAppLink() + '&text=' + encodeURIComponent(fallbackMsg);
+            window.location.href = waLink;
+          }, 800);
+        });
+    }
+
+    // ============ ADMIN STL FILES TAB ============
+    var stlFilesCache = null;
+    
+    async function renderAdminSTLFiles() {
+      var container = document.getElementById('adminSTLFilesList');
+      if (!container) return;
+      container.innerHTML = '<div style="text-align:center;padding:2rem;color:#888"><div style="width:24px;height:24px;border:3px solid rgba(226,176,74,0.2);border-top-color:#e2b04a;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 0.5rem"></div>جاري تحميل الملفات...</div>';
+      
+      try {
+        // Cleanup expired files first
+        await cleanupExpiredSTLFiles();
+        
+        // Load all STL orders
+        var res = await fetch(FIREBASE_DB_URL + '/stl_orders.json');
+        var orders = await res.json();
+        
+        if (!orders || Object.keys(orders).length === 0) {
+          container.innerHTML = '<div style="text-align:center;padding:3rem;color:#666"><svg width="48" height="48" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 1rem"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>لا توجد ملفات STL حالياً</p></div>';
+          return;
+        }
+        
+        // Sort by timestamp descending
+        var list = Object.entries(orders).map(function(e) { return { id: e[0], ...e[1] }; });
+        list.sort(function(a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
+        
+        var html = '';
+        list.forEach(function(order) {
+          var date = order.timestamp ? new Date(order.timestamp) : null;
+          var dateStr = date ? date.toLocaleDateString('ar-EG', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+          var sizeStr = order.fileSize ? (order.fileSize > 1024*1024 ? (order.fileSize/(1024*1024)).toFixed(1)+' MB' : (order.fileSize/1024).toFixed(1)+' KB') : '—';
+          var expiresAt = order.expiresAt ? new Date(order.expiresAt) : null;
+          var now = Date.now();
+          var isExpired = order.expiresAt && now > order.expiresAt;
+          var remaining = order.expiresAt ? Math.max(0, order.expiresAt - now) : 0;
+          var hoursLeft = Math.floor(remaining / (1000*60*60));
+          var minsLeft = Math.floor((remaining % (1000*60*60)) / (1000*60));
+          var timeLeftStr = isExpired ? '<span style="color:#ef4444">منتهي الصلاحية</span>' : '<span style="color:#10b981">متبقي ' + hoursLeft + 'س ' + minsLeft + 'د</span>';
+          
+          html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1rem;margin-bottom:0.75rem">'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">'
+            + '<div style="display:flex;align-items:center;gap:0.75rem;flex:1;min-width:200px">'
+            + '<div style="width:40px;height:40px;border-radius:10px;background:rgba(226,176,74,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" fill="none" stroke="#e2b04a" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>'
+            + '<div>'
+            + '<div style="font-weight:600;font-size:0.9rem">' + escapeHtml(order.fileName || order.originalName || 'ملف STL') + '</div>'
+            + '<div style="font-size:0.75rem;color:#888">' + sizeStr + ' • ' + dateStr + '</div>'
+            + '</div></div>'
+            + '<div style="display:flex;align-items:center;gap:0.5rem">'
+            + timeLeftStr
+            + '</div></div>'
+            + (order.material || order.infill || order.price ? '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.8rem;color:#aaa">'
+              + (order.material ? '<span>🧱 ' + escapeHtml(order.material) + '</span>' : '')
+              + (order.infill ? '<span>🔄 حشو ' + order.infill + '%</span>' : '')
+              + (order.price ? '<span>' + escapeHtml(order.price) + '</span>' : '')
+              + '</div>' : '')
+            + '<div style="display:flex;gap:0.5rem;margin-top:0.75rem">'
+            + (order.storageUrl && !isExpired ? '<a href="' + order.storageUrl + '" download="' + escapeHtml(order.originalName || order.fileName || 'file.stl') + '" class="admin-btn admin-btn-primary" style="font-size:0.8rem;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:0.4rem;text-decoration:none"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>تحميل الملف</a>' : '')
+            + '<button class="admin-btn admin-btn-danger" style="font-size:0.8rem;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:0.4rem" onclick="deleteSTLFile(\'' + order.id + '\')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>حذف</button>'
+            + '</div></div>';
+        });
+        
+        container.innerHTML = html;
+      } catch(e) {
+        console.error('Error loading STL files:', e);
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:#ef4444">خطأ في تحميل الملفات</div>';
+      }
+    }
+    
+    async function deleteSTLFile(id) {
+      if (!confirm('حذف هذا الملف؟')) return;
+      try {
+        await fetch(FIREBASE_DB_URL + '/stl_orders/' + id + '.json', { method: 'DELETE' });
+        renderAdminSTLFiles();
+      } catch(e) {
+        console.error('Error deleting STL file:', e);
+      }
+    }
+    
+    async function cleanupExpiredSTLFiles() {
+      try {
+        var res = await fetch(FIREBASE_DB_URL + '/stl_orders.json');
+        var orders = await res.json();
+        if (!orders) return;
+        var now = Date.now();
+        var expired = Object.entries(orders).filter(function(e) { return e[1].expiresAt && now > e[1].expiresAt; });
+        // Delete expired entries from RTDB
+        await Promise.all(expired.map(function(e) {
+          return fetch(FIREBASE_DB_URL + '/stl_orders/' + e[0] + '.json', { method: 'DELETE' });
+        }));
+        if (expired.length > 0) console.log('[STL] Cleaned up', expired.length, 'expired files');
+      } catch(e) {
+        console.warn('[STL] Cleanup error:', e);
+      }
+    }
+
+    // ============ STL FILE UPLOAD TO FIREBASE STORAGE ============
+    async function uploadSTLToStorage(file) {
+      var path = 'stl_uploads/' + Date.now() + '_' + Math.random().toString(36).substr(2, 6) + '.stl';
+      var uploadUrl = STORAGE_REST + '?uploadType=media&name=' + encodeURIComponent(path);
+      var controller = new AbortController();
+      var timeout = setTimeout(function() { controller.abort(); }, 60000); // 60s for STL files
+      try {
+        var arrayBuffer = await file.arrayBuffer();
+        var res = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: arrayBuffer,
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          var result = await res.json();
+          var token = result.downloadTokens;
+          var downloadUrl = STORAGE_REST + '/' + encodeURIComponent(path) + '?alt=media&token=' + token;
+          console.log('[STL] File uploaded:', downloadUrl);
+          return downloadUrl;
+        } else {
+          var errBody = await res.text().catch(function() { return 'unknown'; });
+          console.error('[STL] Upload failed:', res.status, errBody);
+          throw new Error('Upload failed: ' + res.status);
+        }
+      } catch(e) {
+        clearTimeout(timeout);
+        console.error('[STL] Upload error:', e);
+        throw e;
+      }
+    }
+
+    async function saveSTLOrderMeta(meta) {
+      var res = await fetch(FIREBASE_DB_URL + '/stl_orders.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(meta)
+      });
+      if (!res.ok) throw new Error('Failed to save order meta');
+      var result = await res.json();
+      var savedId = result.name; // Firebase auto-generated key
+      console.log('[STL] Order metadata saved with ID:', savedId);
+      return savedId;
+    }
+
+    async function verifySTLOrderSaved(orderId) {
+      // Read back from RTDB to confirm the order exists and has a storageUrl
+      try {
+        var res = await fetch(FIREBASE_DB_URL + '/stl_orders/' + orderId + '.json');
+        if (!res.ok) return false;
+        var data = await res.json();
+        // Confirmed: data exists and has the required fields
+        var valid = data && data.storageUrl && data.fileName && data.expiresAt;
+        console.log('[STL] Verification:', valid ? 'CONFIRMED ✓' : 'FAILED ✗', data ? 'fileName=' + data.fileName : 'no data');
+        return valid;
+      } catch(e) {
+        console.error('[STL] Verification error:', e);
+        return false;
+      }
     }
 
     // ============ SEARCH ============
